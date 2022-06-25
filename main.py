@@ -5,6 +5,8 @@ import time
 
 class Simulation:
     def __init__(self, num_rw=1):
+
+        # Initiate Warehouses
         self._central_warehouse = CentralWarehouse()
         self._regional_warehouses = {}
 
@@ -16,6 +18,9 @@ class Simulation:
             # Add connections
             self._central_warehouse.add_regional_warehouse(new_rw)
             new_rw.add_central_warehouse(self._central_warehouse.get_id())
+
+        # Parameters
+        self._timestep = 0
 
     def get_central_warehouse(self):
         return self._central_warehouse
@@ -47,6 +52,9 @@ class Simulation:
 
         # Step central warehouse
         self._central_warehouse.step()
+
+        # Timestep
+        self._timestep += 1
 
 
 if __name__ == "__main__":
