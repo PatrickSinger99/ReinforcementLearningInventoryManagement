@@ -17,6 +17,12 @@ class Simulation:
             self._central_warehouse.add_regional_warehouse(new_rw)
             new_rw.add_central_warehouse(self._central_warehouse.get_id())
 
+    def get_central_warehouse(self):
+        return self._central_warehouse
+
+    def get_regional_warehouses(self):
+        return self._regional_warehouses
+
     # Print distribution network state
     def print_state(self):
         print("-"*60)  # Separator
@@ -46,7 +52,7 @@ class Simulation:
 if __name__ == "__main__":
     s1 = Simulation(3)
     s1.print_state()
-    s1._central_warehouse.shipment(2)
+    s1.get_central_warehouse().shipment(2)
 
     for i in range(150):
         s1.step()
