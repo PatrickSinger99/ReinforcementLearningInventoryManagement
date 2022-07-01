@@ -2,12 +2,12 @@ from simulation import *
 import gym
 import numpy as np
 from stable_baselines.common.policies import MlpPolicy
-from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines import PPO2
 
 # Values for the simulation:
 number_of_regional_wh = 1
 inventory_limit = 29
+simulation_lenght = 20
 
 
 """Reinforcement Learning Evironment class"""
@@ -18,7 +18,7 @@ class Environment(gym.Env):
     def __init__(self):
         super().__init__()
 
-        # Create distribution simulation
+        # Create distribution network simulation
         self.simulation = Simulation(number_of_regional_wh, inventory_limit)
 
         # Two possible actions:
@@ -34,10 +34,10 @@ class Environment(gym.Env):
         self.state = np.array([self.simulation.get_regional_warehouses()[1].get_inventory_amount()])
 
         # Number of steps per simulation
-        self.total_steps = 50
+        self.total_steps = simulation_lenght
 
     def reset(self):
-        self.total_steps = 50
+        self.total_steps = simulation_lenght
 
         # Reset simulation
         self.simulation.reset()
@@ -76,26 +76,28 @@ class Environment(gym.Env):
         return self.state[0], reward, done, step_info
 
 
-env = Environment()
+if __name__ == "__main__":
 
-"""
-action_space_size = env.action_space.n
-state_space_size = env.observation_space.n
-q_table = np.zeros((state_space_size, action_space_size))
-print(q_table)
-"""
+    # Display Q-Values
+    """
+    action_space_size = env.action_space.n
+    state_space_size = env.observation_space.n
+    q_table = np.zeros((state_space_size, action_space_size))
+    print(q_table)
+    """
 
-# Create and train model
-model = PPO2(MlpPolicy, env, verbose=1)
-model.learn(total_timesteps=20000)
+    # Create and train model
+    env = Environment()
+    model = PPO2(MlpPolicy, env, verbose=1)
+    model.learn(total_timesteps=20000)
 
-# Reset environment
-state = env.reset()
-done = False
+    # Reset environment for simulation
+    state = env.reset()
+    done = False
 
-# Run simulation with model
-while not done:
-    action, _states = model.predict(state)
-    state, reward, done, info = env.step(action)
-    print(info)
-    # env.simulation.print_state()
+    # Run simulation with model
+    while not done:
+        action, _states = model.predict(state)
+        state, reward, done, info = env.step(action)
+        print(info)
+        # env.simulation.print_state()

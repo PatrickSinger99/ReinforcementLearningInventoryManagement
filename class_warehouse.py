@@ -123,13 +123,12 @@ class RegionalWarehouse(Warehouse):
 
 
 if __name__ == "__main__":
-    c1 = CentralWarehouse()
-    r1 = RegionalWarehouse()
-    r2 = RegionalWarehouse()
-    r3 = RegionalWarehouse()
+    c1 = CentralWarehouse(30)
+    r1 = RegionalWarehouse(30)
+    r2 = RegionalWarehouse(30)
+    r3 = RegionalWarehouse(30)
 
     print(c1.get_id())
     print(r1.get_id())
     print(r2.get_id())
     print(r3.get_name())
-
