@@ -8,14 +8,22 @@ from class_customer import Customer
 class Warehouse(ABC):
     id_count = 0
 
-    def __init__(self, start_inventory=100):
+    def __init__(self, inventory_limit, start_inventory=False):
         # ID assignment
         self._id = Warehouse.id_count
         Warehouse.id_count += 1
         self._name = "unnnamed_warehouse"
 
         # Inventory
+        self._inventory_limit = inventory_limit
         self._inventory_amount = start_inventory
+
+        # Set starting inventory to 1/3 if no given value
+        if self._inventory_amount is False:
+            self._inventory_amount = int(self._inventory_limit/3)
+
+        # Save start value for reset
+        self._reset_inv_amount = self._inventory_amount
 
     def get_id(self):
         return self._id
@@ -32,6 +40,17 @@ class Warehouse(ABC):
     def set_inventory_amount(self, new_amount):
         self._inventory_amount = int(new_amount)
 
+        # Check if inventory exceeds max amount
+        if self._inventory_amount > self._inventory_limit:
+            self._inventory_amount = self._inventory_limit
+
+        # Check if inventory falls below 0 and correct
+        if self._inventory_amount < 0:
+            self._inventory_amount = 0
+
+    def reset(self):
+        self._inventory_amount = self._reset_inv_amount # Set inventory to initial value
+
 
 """Class: Central Warehouse"""
 
@@ -39,8 +58,8 @@ class Warehouse(ABC):
 class CentralWarehouse(Warehouse):
     instance_count = 0
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, inventory_limit):
+        super().__init__(inventory_limit)
         CentralWarehouse.instance_count += 1
         self._name = "central_warehouse_" + str(CentralWarehouse.instance_count)
 
@@ -49,7 +68,7 @@ class CentralWarehouse(Warehouse):
     def add_regional_warehouse(self, rw):
         self._connected_regional_warehouses[rw.get_id()] = rw
 
-    def shipment(self, recieving_rw_id, amount=10):
+    def shipment(self, recieving_rw_id, amount=5):
         # self._inventory_amount -= amount
         self._connected_regional_warehouses[recieving_rw_id].recieve_shipment(amount)
 
@@ -63,8 +82,8 @@ class CentralWarehouse(Warehouse):
 class RegionalWarehouse(Warehouse):
     instance_count = 0
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, inventory_limit):
+        super().__init__(inventory_limit)
         RegionalWarehouse.instance_count += 1
         self._name = "regional_warehouse_" + str(RegionalWarehouse.instance_count)
 
@@ -74,8 +93,8 @@ class RegionalWarehouse(Warehouse):
         self._connected_central_warehouse = None
         self._customer = Customer()
 
-    def add_central_warehouse(self, cw_id):
-        self._connected_central_warehouse = cw_id
+    def add_central_warehouse(self, cw):
+        self._connected_central_warehouse = cw
 
     def get_customer(self):
         return self._customer
@@ -86,6 +105,10 @@ class RegionalWarehouse(Warehouse):
     def recieve_shipment(self, amount):
         self._inventory_amount += amount
 
+        # Check if inventory exceeds max amount
+        if self._inventory_amount > self._inventory_limit:
+            self._inventory_amount = self._inventory_limit
+
     def step(self):
         self._inventory_amount -= self._customer.get_demand_per_step()
 
@@ -93,6 +116,10 @@ class RegionalWarehouse(Warehouse):
         if self._inventory_amount < 0:
             self._lost_sales -= self._inventory_amount
             self._inventory_amount = 0
+
+    def reset(self):
+        self._inventory_amount = self._reset_inv_amount  # Set inventory to initial value
+        self._lost_sales = 0
 
 
 if __name__ == "__main__":

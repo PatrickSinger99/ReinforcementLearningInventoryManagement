@@ -1,26 +1,25 @@
-from class_customer import *
 from class_warehouse import *
 import time
 
 
-class Simulation:
-    def __init__(self, num_rw=1):
+"""Simulation class"""
 
-        # Initiate Warehouses
-        self._central_warehouse = CentralWarehouse()
-        self._regional_warehouses = {}
+
+class Simulation:
+    def __init__(self, number_of_regional_wh=1, inventory_limit=30):
+
+        # Instantiate Warehouses
+        self._central_warehouse = CentralWarehouse(inventory_limit)  # Saved as class object
+        self._regional_warehouses = {}  # Saved as {id: object, id2: object2}
 
         # Create regional warehouses
-        for i in range(num_rw):
-            new_rw = RegionalWarehouse()
+        for i in range(number_of_regional_wh):
+            new_rw = RegionalWarehouse(inventory_limit)
             self._regional_warehouses[new_rw.get_id()] = new_rw
 
             # Add connections
             self._central_warehouse.add_regional_warehouse(new_rw)
-            new_rw.add_central_warehouse(self._central_warehouse.get_id())
-
-        # Parameters
-        self._timestep = 0
+            new_rw.add_central_warehouse(self._central_warehouse)
 
     def get_central_warehouse(self):
         return self._central_warehouse
@@ -45,6 +44,9 @@ class Simulation:
 
         print("-" * 60)  # Separator
 
+    def ship_from_central_to_regional_warehouse(self, regional_warehouse_id, amount):
+        self._central_warehouse.shipment(regional_warehouse_id, amount)
+
     def step(self):
         # Step regional warehouses
         for rw in self._regional_warehouses:
@@ -53,14 +55,16 @@ class Simulation:
         # Step central warehouse
         self._central_warehouse.step()
 
-        # Timestep
-        self._timestep += 1
+    def reset(self):
+        self._central_warehouse.reset()
+        for wh in self._regional_warehouses:
+            self._regional_warehouses[wh].reset()
 
 
 if __name__ == "__main__":
     s1 = Simulation(3)
     s1.print_state()
-    s1.get_central_warehouse().shipment(2)
+    s1.ship_from_central_to_regional_warehouse(1, 100)
 
     for i in range(150):
         s1.step()

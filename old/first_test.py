@@ -58,6 +58,8 @@ class TestEnv(gym.Env):
     def reset(self):
         self.state = np.array([random.randint(0, 15)])
         self.rounds = 50
+
+
         return self.state[0]
 
 
