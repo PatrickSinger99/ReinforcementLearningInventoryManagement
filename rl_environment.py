@@ -6,8 +6,8 @@ from stable_baselines import PPO2
 
 # Values for the simulation:
 number_of_regional_wh = 1
-inventory_limit = 29
-simulation_lenght = 20
+inventory_limit = 49
+simulation_lenght = 50
 
 
 """Reinforcement Learning Evironment class"""
@@ -53,14 +53,17 @@ class Environment(gym.Env):
         if action == 1:
             self.simulation.ship_from_central_to_regional_warehouse(regional_warehouse_id=1, amount=5)
 
+        # Dummy reward scaping
+        if self.state[0] == 0:
+            reward = -1
+        else:
+            if action == 0:
+                reward = 1
+            else:
+                reward = -self.state[0]/50
+
         # Update state from simulation (Simulation handels demand)
         self.state[0] = self.simulation.get_regional_warehouses()[1].get_inventory_amount()
-
-        # Dummy reward scaping
-        if 0 < self.state[0] < 10:
-            reward = 1
-        else:
-            reward = -1
 
         # Steps left
         self.total_steps -= 1
@@ -89,7 +92,7 @@ if __name__ == "__main__":
     # Create and train model
     env = Environment()
     model = PPO2(MlpPolicy, env, verbose=1)
-    model.learn(total_timesteps=20000)
+    model.learn(total_timesteps=100000)
 
     # Reset environment for simulation
     state = env.reset()
