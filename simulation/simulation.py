@@ -1,4 +1,4 @@
-from class_warehouse import *
+from simulation.actor_classes.class_warehouse import *
 import time
 
 

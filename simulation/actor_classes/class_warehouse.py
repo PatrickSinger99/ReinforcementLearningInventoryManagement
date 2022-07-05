@@ -1,5 +1,5 @@
 from abc import ABC
-from class_customer import Customer
+from simulation.actor_classes.class_customer import Customer
 
 
 """Abstract class: Warehouse"""

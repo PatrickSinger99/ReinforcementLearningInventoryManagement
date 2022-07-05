@@ -1,4 +1,4 @@
-from simulation import *
+from simulation.simulation import *
 import gym
 import numpy as np
 from stable_baselines.common.policies import MlpPolicy
@@ -53,14 +53,11 @@ class Environment(gym.Env):
         if action == 1:
             self.simulation.ship_from_central_to_regional_warehouse(regional_warehouse_id=1, amount=5)
 
-        # Dummy reward scaping
+        # Dummy reward function
         if self.state[0] == 0:
             reward = -1
         else:
-            if action == 0:
-                reward = 1
-            else:
-                reward = -self.state[0]/50
+            reward = 1/self.state[0]  # Hyperbel
 
         # Update state from simulation (Simulation handels demand)
         self.state[0] = self.simulation.get_regional_warehouses()[1].get_inventory_amount()
