@@ -35,13 +35,24 @@ class Environment(gym.Env):
         self.sim_length = sim_length
         self.total_steps = self.sim_length
 
+        # Simulation parameters
         self.lead_time = lead_time
+
+        # Values for final evaluation
+        self.total_lost_sales = 0
+        self.total_reward_gained = 0
+        self.total_shipments = 0
 
     def reset(self):
         self.total_steps = self.sim_length
 
         # Reset simulation
         self.simulation.reset()
+
+        # Reset values for final evaluation
+        self.total_lost_sales = 0
+        self.total_reward_gained = 0
+        self.total_shipments = 0
 
         # Returns value that is within observation space
         return self.state[0]
@@ -53,15 +64,22 @@ class Environment(gym.Env):
         # Send shipment if action = 1
         if action == 1:
             self.simulation.start_shipment(rw_id=1, amount=5, lead_time=self.lead_time)
+            self.total_shipments += 1
 
         # Dummy reward function
-        if self.state[0] == 0:
+        if self.simulation.get_regional_warehouse_by_id(1).get_lost_sales_last_round() != 0:
             reward = -1
+        elif self.state[0] == 0:
+            reward = 1
         else:
             reward = 1/self.state[0]  # Hyperbel
 
+        # Count up eval parameters
+        self.total_reward_gained += reward
+        self.total_lost_sales += self.simulation.get_regional_warehouse_by_id(1).get_lost_sales_last_round()
+
         # Update state from simulation (Simulation handels demand)
-        self.state[0] = self.simulation.get_regional_warehouses()[1].get_inventory_amount()
+        self.state[0] = self.simulation.get_regional_warehouse_by_id(1).get_inventory_amount()
 
         # Steps left
         self.total_steps -= 1
@@ -75,6 +93,11 @@ class Environment(gym.Env):
                      "Reward:": round(reward, 2)}
 
         return self.state[0], reward, done, step_info
+
+    def evaluation_parameters(self):
+        return {"total_shipments": self.total_shipments,
+                "total_lost_sales": self.total_lost_sales,
+                "total_reward_gained": self.total_reward_gained}
 
 
 if __name__ == "__main__":

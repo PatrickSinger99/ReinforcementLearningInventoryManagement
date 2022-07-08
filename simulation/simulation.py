@@ -67,7 +67,6 @@ class Simulation:
                                            "amount": amount,
                                            "lead_time": lead_time,
                                            "arrival": self._round + lead_time})
-        print(self._in_transit_shipments)
 
     def finish_shipment(self, rw_id, amount):
         self._regional_warehouses[rw_id].set_inventory_amount(add=amount)
@@ -76,15 +75,15 @@ class Simulation:
         # Current round
         self._round += 1
 
-        # Step regional warehouses
-        for rw in self._regional_warehouses:
-            self._regional_warehouses[rw].step()
-
         # Shipments
         for active_shipment in self._in_transit_shipments:
             if active_shipment["arrival"] == self._round:
                 self.finish_shipment(rw_id=active_shipment["regional_warehouse"], amount=active_shipment["amount"])
                 self._in_transit_shipments.remove(active_shipment)
+
+        # Step regional warehouses
+        for rw in self._regional_warehouses:
+            self._regional_warehouses[rw].step()
 
     def reset(self):
         self._round = 1

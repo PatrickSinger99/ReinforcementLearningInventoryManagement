@@ -85,6 +85,7 @@ class RegionalWarehouse(Warehouse):
         self._name = "regional_warehouse_" + str(RegionalWarehouse.instance_count)
 
         self._lost_sales = 0  # Counts lost sales due to empty inventory
+        self._lost_sales_last_round = 0  # Displays only if sales were lost in the last round
 
         # Initiate connections
         self._connected_central_warehouse = None
@@ -99,17 +100,24 @@ class RegionalWarehouse(Warehouse):
     def get_lost_sales(self):
         return self._lost_sales
 
+    def get_lost_sales_last_round(self):
+        return self._lost_sales_last_round
+
     def step(self):
         self._inventory_amount -= self._customer.get_demand_per_step()
 
         # Count up lost sales if inv is below zero
         if self._inventory_amount < 0:
             self._lost_sales -= self._inventory_amount
+            self._lost_sales_last_round = self._inventory_amount
             self._inventory_amount = 0
+        else:
+            self._lost_sales_last_round = 0
 
     def reset(self):
         self._inventory_amount = self._reset_inv_amount  # Set inventory to initial value
         self._lost_sales = 0
+        self._lost_sales_last_round = 0
 
 
 if __name__ == "__main__":
