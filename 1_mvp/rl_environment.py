@@ -43,11 +43,15 @@ class Environment(gym.Env):
         self.total_reward_gained = 0
         self.total_shipments = 0
 
+        self.total_reward = []
+
     def reset(self):
         self.total_steps = self.sim_length
 
         # Reset simulation
         self.simulation.reset()
+
+        self.total_reward.append(self.total_reward_gained)
 
         # Reset values for final evaluation
         self.total_lost_sales = 0
@@ -66,20 +70,20 @@ class Environment(gym.Env):
             self.simulation.start_shipment(rw_id=1, amount=5, lead_time=self.lead_time)
             self.total_shipments += 1
 
+        # Update state from simulation (Simulation handels demand)
+        self.state[0] = self.simulation.get_regional_warehouse_by_id(1).get_inventory_amount()
+
         # Dummy reward function
         if self.simulation.get_regional_warehouse_by_id(1).get_lost_sales_last_round() != 0:
             reward = -1
         elif self.state[0] == 0:
             reward = 1
         else:
-            reward = 1/self.state[0]  # Hyperbel
+            reward = 1/(self.state[0] + 1)  # Hyperbel
 
         # Count up eval parameters
         self.total_reward_gained += reward
         self.total_lost_sales += self.simulation.get_regional_warehouse_by_id(1).get_lost_sales_last_round()
-
-        # Update state from simulation (Simulation handels demand)
-        self.state[0] = self.simulation.get_regional_warehouse_by_id(1).get_inventory_amount()
 
         # Steps left
         self.total_steps -= 1
@@ -97,7 +101,7 @@ class Environment(gym.Env):
     def evaluation_parameters(self):
         return {"total_shipments": self.total_shipments,
                 "total_lost_sales": self.total_lost_sales,
-                "total_reward_gained": self.total_reward_gained}
+                "total_reward_gained": round(self.total_reward_gained, 2)}
 
 
 if __name__ == "__main__":
