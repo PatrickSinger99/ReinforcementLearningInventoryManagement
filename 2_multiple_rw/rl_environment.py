@@ -23,18 +23,16 @@ class Environment(gym.Env):
         # Action 0: Dont ship new products
         # Action 1: Ship new products
         self.action_space = gym.spaces.MultiDiscrete([2]*number_of_regional_wh)
-        print(self.action_space)
+
         # Observation space is the inventory amount of the regional warehouse
         # Plus 1 because inventory of 0 is a possibility
         self.observation_space = gym.spaces.MultiDiscrete(np.array([rw_inventory_limit + 1]*number_of_regional_wh))
-        print(self.observation_space)
 
         # The state is the current inventory level
         state_list = []
         for rw_id in self.simulation.get_regional_warehouses():
             state_list.append(self.simulation.get_regional_warehouse_by_id(rw_id).get_inventory_amount())
         self.state = np.array(state_list)
-        print(self.state)
 
         # Number of steps per simulation
         self.sim_length = sim_length
@@ -71,22 +69,27 @@ class Environment(gym.Env):
         # Step simulation
         self.simulation.step()
 
-        # Send shipment if action = 1
-        if action[0] == 1:
-            self.simulation.start_shipment(rw_id=1, amount=5, lead_time=self.lead_time)
-            self.total_shipments += 1
+        # For every RW, send shipment if action = 1
+        for rw_id in self.simulation.get_regional_warehouses():
+            if action[rw_id - 1] == 1:
+                self.simulation.start_shipment(rw_id=rw_id, amount=5, lead_time=self.lead_time)
+                self.total_shipments += 1
 
         # Update state from simulation (Simulation handels demand)
-        for rw in self.simulation.get_regional_warehouses():
-            self.state[rw - 1] = self.simulation.get_regional_warehouse_by_id(rw).get_inventory_amount()
+        for rw_id in self.simulation.get_regional_warehouses():
+            self.state[rw_id - 1] = self.simulation.get_regional_warehouse_by_id(rw_id).get_inventory_amount()
 
-        # Dummy reward function
-        if self.simulation.get_regional_warehouse_by_id(1).get_lost_sales_last_round() != 0:
-            reward = -1
-        elif self.state[0] == 0:
-            reward = 1
-        else:
-            reward = 1/(self.state[0] + 1)  # Hyperbel
+        # Reward function based on inventory amount
+        reward = 0
+        for rw_id in self.simulation.get_regional_warehouses():
+            if self.simulation.get_regional_warehouse_by_id(rw_id).get_lost_sales_last_round() != 0:
+                rw_reward = -1
+            elif self.state[rw_id - 1] == 0:  # elif necessary because cannot divide through zero
+                rw_reward = 1
+            else:
+                rw_reward = 1/(self.state[rw_id - 1] + 1)  # Hyperbel
+            reward += rw_reward
+        reward /= self.number_of_rw
 
         # Count up eval parameters
         self.total_reward_gained += reward
@@ -124,7 +127,7 @@ if __name__ == "__main__":
     # Create and train model
     env = Environment(2, 49, 100, 1, 2)
     model = PPO2(MlpPolicy, env, verbose=1)
-    model.learn(total_timesteps=30000)
+    model.learn(total_timesteps=60000)
     
     # Reset environment for simulation
     state = env.reset()

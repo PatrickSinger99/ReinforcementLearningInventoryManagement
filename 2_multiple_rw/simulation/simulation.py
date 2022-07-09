@@ -71,15 +71,26 @@ class Simulation:
     def finish_shipment(self, rw_id, amount):
         self._regional_warehouses[rw_id].set_inventory_amount(add=amount)
 
+    def get_all_active_shipments(self):
+        return self._in_transit_shipments
+
     def step(self):
         # Current round
         self._round += 1
 
-        # Shipments
+        # List for later removement
+        shipments_to_remove = []
+
+        # Finish shipments, if delivery time reached
         for active_shipment in self._in_transit_shipments:
             if active_shipment["arrival"] == self._round:
+
                 self.finish_shipment(rw_id=active_shipment["regional_warehouse"], amount=active_shipment["amount"])
-                self._in_transit_shipments.remove(active_shipment)
+                shipments_to_remove.append(active_shipment)
+
+        # Remove finished shipments
+        for shipment in shipments_to_remove:
+            self._in_transit_shipments.remove(shipment)
 
         # Step regional warehouses
         for rw in self._regional_warehouses:
