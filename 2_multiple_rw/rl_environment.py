@@ -42,6 +42,7 @@ class Environment(gym.Env):
 
         # Simulation parameters
         self.lead_time = lead_time
+        self.number_of_rw = number_of_regional_wh
 
         # Values for final evaluation
         self.total_lost_sales = 0
@@ -64,14 +65,14 @@ class Environment(gym.Env):
         self.total_shipments = 0
 
         # Returns value that is within observation space
-        return self.state
+        return np.array([0]*self.number_of_rw)
 
     def step(self, action):
         # Step simulation
         self.simulation.step()
 
         # Send shipment if action = 1
-        if action == 1:
+        if action[0] == 1:
             self.simulation.start_shipment(rw_id=1, amount=5, lead_time=self.lead_time)
             self.total_shipments += 1
 
@@ -121,9 +122,9 @@ if __name__ == "__main__":
     """
 
     # Create and train model
-    env = Environment(1, 49, 100, 2, 3)
+    env = Environment(2, 49, 100, 1, 2)
     model = PPO2(MlpPolicy, env, verbose=1)
-    model.learn(total_timesteps=10000)
+    model.learn(total_timesteps=30000)
     
     # Reset environment for simulation
     state = env.reset()
@@ -134,4 +135,5 @@ if __name__ == "__main__":
         action, _states = model.predict(state)
         state, reward, done, info = env.step(action)
         print(info)
+        print(env.simulation.print_state())
         # env.simulation.print_state()
