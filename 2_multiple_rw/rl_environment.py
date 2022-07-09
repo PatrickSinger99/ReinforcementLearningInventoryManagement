@@ -49,6 +49,14 @@ class Environment(gym.Env):
 
         self.total_reward = []
 
+    def print_environment_information(self):
+        print("Environment Information")
+        print("-----------------------")
+        print("Observation space:", self.observation_space)
+        print("Action space:", self.action_space)
+        print("Starting state:", self.state)
+        print("_"*80)  # Separator
+
     def reset(self):
         self.total_steps = self.sim_length
 
@@ -61,7 +69,7 @@ class Environment(gym.Env):
         self.total_lost_sales = 0
         self.total_reward_gained = 0
         self.total_shipments = 0
-
+        
         # Returns value that is within observation space
         return np.array([0]*self.number_of_rw)
 
@@ -103,7 +111,7 @@ class Environment(gym.Env):
             done = False
 
         # Write info
-        step_info = {"Steps left:": self.total_steps, "Inventory:": self.state[0], "Action:": action,
+        step_info = {"Steps left:": self.total_steps, "Inventory:": self.state, "Action:": action,
                      "Reward:": round(reward, 2)}
 
         return self.state, reward, done, step_info
@@ -127,7 +135,7 @@ if __name__ == "__main__":
     # Create and train model
     env = Environment(2, 49, 100, 1, 2)
     model = PPO2(MlpPolicy, env, verbose=1)
-    model.learn(total_timesteps=60000)
+    model.learn(total_timesteps=30000)
     
     # Reset environment for simulation
     state = env.reset()
@@ -138,5 +146,4 @@ if __name__ == "__main__":
         action, _states = model.predict(state)
         state, reward, done, info = env.step(action)
         print(info)
-        print(env.simulation.print_state())
         # env.simulation.print_state()

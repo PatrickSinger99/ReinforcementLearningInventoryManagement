@@ -33,6 +33,7 @@ class Simulation:
 
         # Info print
         print("Simulation created with the following parameters:")
+        print("_"*80)
         self.print_state()
 
     def get_central_warehouse(self):
@@ -46,8 +47,18 @@ class Simulation:
 
     # Print distribution network state
     def print_state(self):
-        print("-"*60)  # Separator
+        title = "\nSimulation | Round " + str(self._round)
+        print(title + "\n" + "-"*(len(title)-1))
 
+        print("Active shipments:")
+
+        for shipment in self._in_transit_shipments:
+            print("To:", self._regional_warehouses[shipment["regional_warehouse"]].get_name(),
+                  "Arrival in round:", shipment["arrival"], "Amount:", shipment["amount"])
+        if len(self._in_transit_shipments) == 0:
+            print("No active shipments")
+
+        print("\nWarehouses:")
         # Print central warehouse
         print(self._central_warehouse.get_name() + " ; Inventory:",
               self._central_warehouse.get_inventory_amount())
@@ -60,7 +71,7 @@ class Simulation:
                   self._regional_warehouses[rw].get_customer().get_demand_per_step(), "; Lost sales:",
                   self._regional_warehouses[rw].get_lost_sales())
 
-        print("-" * 60)  # Separator
+        print("_" * 80)  # Separator
 
     def start_shipment(self, rw_id, amount, lead_time):
         self._in_transit_shipments.append({"regional_warehouse": rw_id,
