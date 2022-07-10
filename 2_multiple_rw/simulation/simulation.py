@@ -6,7 +6,7 @@ import time
 
 
 class Simulation:
-    def __init__(self, number_of_regional_wh=1, rw_inventory_limit=30, cw_inventory_limit=100, customer_demand=1):
+    def __init__(self, number_of_regional_wh=1, rw_inventory_limit=30, cw_inventory_limit=100, customer_demand=[1]):
         # Variables
         self._round = 1
         self._in_transit_shipments = []
@@ -22,7 +22,7 @@ class Simulation:
         for i in range(number_of_regional_wh):
             new_rw = RegionalWarehouse(rw_inventory_limit)
             new_rw.set_id(rw_id_count)
-            new_rw.get_customer().set_demand_per_step(customer_demand)
+            new_rw.get_customer().set_demand_per_step(customer_demand[i])
 
             self._regional_warehouses[rw_id_count] = new_rw
             rw_id_count += 1
@@ -47,10 +47,10 @@ class Simulation:
 
     # Print distribution network state
     def print_state(self):
-        title = "\nSimulation | Round " + str(self._round)
+        title = "Simulation | Round " + str(self._round)
         print(title + "\n" + "-"*(len(title)-1))
 
-        print("Active shipments:")
+        print("-> Active shipments:")
 
         for shipment in self._in_transit_shipments:
             print("To:", self._regional_warehouses[shipment["regional_warehouse"]].get_name(),
@@ -58,7 +58,7 @@ class Simulation:
         if len(self._in_transit_shipments) == 0:
             print("No active shipments")
 
-        print("\nWarehouses:")
+        print("\n-> Warehouses:")
         # Print central warehouse
         print(self._central_warehouse.get_name() + " ; Inventory:",
               self._central_warehouse.get_inventory_amount())

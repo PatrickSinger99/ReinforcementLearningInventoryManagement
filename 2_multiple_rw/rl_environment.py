@@ -10,7 +10,8 @@ from stable_baselines import PPO2
 
 class Environment(gym.Env):
 
-    def __init__(self, number_of_regional_wh, rw_inventory_limit, cw_inventory_limit, demand, lead_time, sim_length=50):
+    def __init__(self, number_of_regional_wh, rw_inventory_limit, cw_inventory_limit, demand, lead_time,
+                 shipment_amount, sim_length=50):
         super().__init__()
 
         # Create distribution network simulation
@@ -41,6 +42,7 @@ class Environment(gym.Env):
         # Simulation parameters
         self.lead_time = lead_time
         self.number_of_rw = number_of_regional_wh
+        self.shipment_amount = shipment_amount
 
         # Values for final evaluation
         self.total_lost_sales = 0
@@ -69,7 +71,7 @@ class Environment(gym.Env):
         self.total_lost_sales = 0
         self.total_reward_gained = 0
         self.total_shipments = 0
-        
+
         # Returns value that is within observation space
         return np.array([0]*self.number_of_rw)
 
@@ -80,7 +82,7 @@ class Environment(gym.Env):
         # For every RW, send shipment if action = 1
         for rw_id in self.simulation.get_regional_warehouses():
             if action[rw_id - 1] == 1:
-                self.simulation.start_shipment(rw_id=rw_id, amount=5, lead_time=self.lead_time)
+                self.simulation.start_shipment(rw_id=rw_id, amount=self.shipment_amount, lead_time=self.lead_time)
                 self.total_shipments += 1
 
         # Update state from simulation (Simulation handels demand)
@@ -133,7 +135,7 @@ if __name__ == "__main__":
     """
 
     # Create and train model
-    env = Environment(2, 49, 100, 1, 2)
+    env = Environment(2, 49, 100, 1, 2, 10)
     model = PPO2(MlpPolicy, env, verbose=1)
     model.learn(total_timesteps=30000)
     
