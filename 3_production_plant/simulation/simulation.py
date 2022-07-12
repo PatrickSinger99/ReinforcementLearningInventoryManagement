@@ -100,7 +100,7 @@ class Simulation:
                                                "lead_time": lead_time,
                                                "arrival": self._round + lead_time})
             # Remove amount from central warehouse
-            self._central_warehouse.set_inventory_amount(remove=amount)
+            # self._central_warehouse.set_inventory_amount(remove=amount)
 
     def finish_shipment(self, rw_id, amount):
         self._regional_warehouses[rw_id].set_inventory_amount(add=amount)
