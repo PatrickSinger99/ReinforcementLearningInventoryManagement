@@ -11,7 +11,7 @@ from stable_baselines3 import PPO
 class Environment(gym.Env):
 
     def __init__(self, number_of_regional_wh, rw_inventory_limit, cw_inventory_limit, demand, lead_time,
-                 shipment_amount, manufacturer=False, sim_length=50):
+                 shipment_amount, cw_shipment_amount, mf_prod_capacity, manufacturer=False, sim_length=50):
         super().__init__()
 
         # Create distribution network simulation
@@ -19,12 +19,17 @@ class Environment(gym.Env):
                                      rw_inventory_limit=rw_inventory_limit,
                                      cw_inventory_limit=cw_inventory_limit,
                                      customer_demand=demand,
-                                     manufacturer=manufacturer)
+                                     manufacturer=manufacturer,
+                                     manufacturer_production_capacity=mf_prod_capacity)
 
         # Two possible actions per warehouse:
         # Action 0: Dont ship new products
         # Action 1: Ship new products
-        self.action_space = gym.spaces.MultiDiscrete([2]*number_of_regional_wh)
+        action_space = [2]*number_of_regional_wh
+        if manufacturer:
+            action_space += [2]
+
+        self.action_space = gym.spaces.MultiDiscrete(action_space)
 
         # Observation space is the inventory amount of the regional warehouse
         obs_space = {
@@ -46,6 +51,7 @@ class Environment(gym.Env):
         self.lead_time = lead_time
         self.number_of_rw = number_of_regional_wh
         self.shipment_amount = shipment_amount
+        self.cw_shipment_amount = cw_shipment_amount
 
         # Values for final evaluation
         self.total_lost_sales = 0
@@ -101,11 +107,18 @@ class Environment(gym.Env):
                 self.simulation.start_shipment(rw_id=rw_id, amount=self.shipment_amount, lead_time=self.lead_time)
                 self.total_shipments += 1
 
+        # Shipment action for cw
+        if self.simulation.get_manufacturer():
+            if action[-1] == 1:
+                self.simulation.start_cw_shipment(amount=self.cw_shipment_amount, lead_time=self.lead_time)
+                self.total_shipments += 1
+
         # Update state from simulation (Simulation handels demand)
         self.state = self.get_state()
 
         # Reward function based on inventory amount
         reward = 0
+        # Check RWs
         for rw_id in self.simulation.get_regional_warehouses():
             if self.simulation.get_regional_warehouse_by_id(rw_id).get_lost_sales_last_round() != 0:
                 rw_reward = -1
@@ -114,7 +127,15 @@ class Environment(gym.Env):
             else:
                 rw_reward = 1/(self.state["rw_inventories"][rw_id - 1] + 1)  # Hyperbel
             reward += rw_reward
-        reward /= self.number_of_rw
+
+        # Check CW if manufacturer is enabled
+        if self.simulation.get_manufacturer():
+            reward += 1/(self.state["cw_inventory"] + 1)
+
+        if self.simulation.get_manufacturer():
+            reward /= self.number_of_rw + 1
+        else:
+            reward /= self.number_of_rw
 
         # Count up eval parameters
         self.total_reward_gained += reward
@@ -128,8 +149,11 @@ class Environment(gym.Env):
             done = False
 
         # Write info
-        step_info = {"Steps left:": self.total_steps, "Inventory:": self.state, "Action:": action,
-                     "Reward:": round(reward, 2)}
+        step_info = {"Steps left:": self.total_steps, "RW Invs:": self.state["rw_inventories"].tolist(),
+                     "CW Inv:": self.state["cw_inventory"], "Action:": action, "Reward:": round(reward, 2)}
+
+        if self.simulation.get_manufacturer():
+            step_info["Manufacturer:"] = self.simulation.get_manufacturer().get_inventory_amount()
 
         return self.state, reward, done, step_info
 
@@ -156,7 +180,9 @@ if __name__ == "__main__":
                       demand=[1],
                       lead_time=2,
                       shipment_amount=10,
-                      manufacturer=True)
+                      manufacturer=True,
+                      cw_shipment_amount=10,
+                      mf_prod_capacity=10)
 
     model = PPO("MultiInputPolicy", env, verbose=1)
     model.learn(total_timesteps=10000)

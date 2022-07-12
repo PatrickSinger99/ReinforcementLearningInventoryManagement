@@ -11,11 +11,13 @@ class Simulation:
                  rw_inventory_limit=30,
                  cw_inventory_limit=100,
                  customer_demand=[1],
-                 manufacturer=False):
+                 manufacturer=False,
+                 manufacturer_production_capacity=10):
 
         # Variables
         self._round = 1
         self._in_transit_shipments = []
+        self._in_transit_cw_shipments = []
 
         # Instantiate actors
         self._central_warehouse = CentralWarehouse(cw_inventory_limit)  # Saved as class object
@@ -39,7 +41,7 @@ class Simulation:
 
         # Create Manufacturer if set to True
         if manufacturer:
-            self._manufacturer = Manufacturer()
+            self._manufacturer = Manufacturer(manufacturer_production_capacity)
         else:
             self._manufacturer = False
 
@@ -56,6 +58,9 @@ class Simulation:
 
     def get_regional_warehouse_by_id(self, rw_id):
         return self._regional_warehouses[rw_id]
+
+    def get_manufacturer(self):
+        return self._manufacturer
 
     # Print distribution network state
     def print_state(self):
@@ -87,10 +92,11 @@ class Simulation:
             print("\n-> Production plant:")
             print(self._manufacturer.get_name() + " ; Production per step:",
                   self._manufacturer.get_production_capacity(), "; Inventory:",
-                  self._manufacturer.get_inventory())
+                  self._manufacturer.get_inventory_amount())
 
         print("_" * 80)  # Separator
 
+    # Starts a new shipment by creating a entry in the in_transit_shipments dictionary
     def start_shipment(self, rw_id, amount, lead_time):
         # Check if enough inventory in central warehouse
         if self._central_warehouse.get_inventory_amount() >= amount:
@@ -99,14 +105,34 @@ class Simulation:
                                                "amount": amount,
                                                "lead_time": lead_time,
                                                "arrival": self._round + lead_time})
-            # Remove amount from central warehouse
-            # self._central_warehouse.set_inventory_amount(remove=amount)
+            # Remove amount from central warehouse if manufacturer is modeled
+            if self._manufacturer:
+                self._central_warehouse.set_inventory_amount(remove=amount)
 
+    # Finish a shipment by adding amount to recieving regional warehouse
     def finish_shipment(self, rw_id, amount):
         self._regional_warehouses[rw_id].set_inventory_amount(add=amount)
 
+    # Start shipment for central warehouse
+    def start_cw_shipment(self, amount, lead_time):
+        # Check if amount is available at manufacturer
+        if self._manufacturer.get_inventory_amount() >= amount:
+            self._in_transit_cw_shipments.append({"amount": amount,
+                                                  "lead_time": lead_time,
+                                                  "arrival": self._round + lead_time})
+
+            self._manufacturer.set_inventory_amount(remove=amount)
+
+    # Finish shipment for central warehouse
+    def finish_cw_shipment(self, amount):
+        self._central_warehouse.set_inventory_amount(add=amount)
+
+    # return all rw and cw shipments that are in transit
     def get_all_active_shipments(self):
-        return self._in_transit_shipments
+        return self._in_transit_shipments, self._in_transit_cw_shipments
+
+    # Step simulation
+    # - Finish shipments
 
     def step(self):
         # Current round
@@ -126,13 +152,30 @@ class Simulation:
         for shipment in shipments_to_remove:
             self._in_transit_shipments.remove(shipment)
 
+        # List for later removement
+        cw_shipments_to_remove = []
+
+        # Finish cw shipments
+        for active_shipment in self._in_transit_cw_shipments:
+            if active_shipment["arrival"] == self._round:
+                self.finish_cw_shipment(amount=active_shipment["amount"])
+
+        # Remove finished shipments
+        for shipment in cw_shipments_to_remove:
+            self._in_transit_cw_shipments.remove(shipment)
+
         # Step regional warehouses
         for rw in self._regional_warehouses:
             self._regional_warehouses[rw].step()
 
+        # Step Manufacturer
+        if self._manufacturer:
+            self._manufacturer.step()
+
     def reset(self):
         self._round = 1
         self._in_transit_shipments = []
+        self._in_transit_cw_shipments = []
 
         self._central_warehouse.reset()
         for wh in self._regional_warehouses:

@@ -4,11 +4,11 @@ hyperbolic = [7, 6, 5, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 
 linear = [7, 6, 10, 9, 8, 7, 6, 5, 4, 3, 7, 6, 5, 4, 3, 7, 6, 5, 4, 3, 7, 6, 10, 9, 8, 7, 11, 10, 9, 8, 7, 6, 5, 4, 3, 7, 6, 5, 4, 3, 7, 6, 10, 9, 8, 7, 6, 5, 4, 3, 7, 6, 5, 4, 3, 2, 1, 0, 4, 8]
 
 
-plt.plot(hyperbolic, label="Hyperbolic reward function", color="#66C2A5")
-plt.plot(linear, label="Linear reward function", linestyle=":", color="#FC8D62")
+plt.plot(hyperbolic, label="Hyperbolic reward function", color="#66C2A5", linewidth=2)
+plt.plot(linear, label="Linear reward function", linestyle=":", color="#FC8D62", linewidth=2)
 plt.legend()
-plt.ylabel("Reward")
-plt.xlabel("Inventory level")
+plt.ylabel("Inventory level")
+plt.xlabel("Step")
 plt.xlim([0, 60])
 plt.ylim([0, 25])
 plt.title("Comparison of a linear and hyperbolic reward function")
