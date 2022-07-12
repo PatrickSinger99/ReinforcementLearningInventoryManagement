@@ -27,14 +27,22 @@ class Environment(gym.Env):
         self.action_space = gym.spaces.MultiDiscrete([2]*number_of_regional_wh)
 
         # Observation space is the inventory amount of the regional warehouse
-        # Plus 1 because inventory of 0 is a possibility
-        self.observation_space = gym.spaces.MultiDiscrete(np.array([rw_inventory_limit + 1]*number_of_regional_wh))
+        obs_space = {
+            # Inventory state of every regional warehouse (Plus 1 to size 1 because inventory of 0 is a possibility)
+            "rw_inventories": gym.spaces.MultiDiscrete(np.array([rw_inventory_limit + 1]*number_of_regional_wh)),
+            # Inventory state of the central warehouse
+            "cw_inventory": gym.spaces.Discrete(cw_inventory_limit + 1)
+        }
+
+        self.observation_space = gym.spaces.Dict(obs_space)
 
         # The state is the current inventory level
-        state_list = []
+        rw_state_list = []
         for rw_id in self.simulation.get_regional_warehouses():
-            state_list.append(self.simulation.get_regional_warehouse_by_id(rw_id).get_inventory_amount())
-        self.state = np.array(state_list)
+            rw_state_list.append(self.simulation.get_regional_warehouse_by_id(rw_id).get_inventory_amount())
+
+        self.state = {"rw_inventories": np.array(rw_state_list),
+                      "cw_inventory": self.simulation.get_central_warehouse().get_inventory_amount()}
 
         # Number of steps per simulation
         self.sim_length = sim_length
@@ -74,7 +82,7 @@ class Environment(gym.Env):
         self.total_shipments = 0
 
         # Returns value that is within observation space
-        return np.array([0]*self.number_of_rw)
+        return {"rw_inventories": np.array([0]*self.number_of_rw), "cw_inventory": 0}
 
     def step(self, action):
         # Step simulation
@@ -88,17 +96,18 @@ class Environment(gym.Env):
 
         # Update state from simulation (Simulation handels demand)
         for rw_id in self.simulation.get_regional_warehouses():
-            self.state[rw_id - 1] = self.simulation.get_regional_warehouse_by_id(rw_id).get_inventory_amount()
+            self.state["rw_inventories"][rw_id - 1] = self.simulation.get_regional_warehouse_by_id(rw_id).get_inventory_amount()
+        self.state["cw_inventory"] = self.simulation.get_central_warehouse().get_inventory_amount()
 
         # Reward function based on inventory amount
         reward = 0
         for rw_id in self.simulation.get_regional_warehouses():
             if self.simulation.get_regional_warehouse_by_id(rw_id).get_lost_sales_last_round() != 0:
                 rw_reward = -1
-            elif self.state[rw_id - 1] == 0:  # elif necessary because cannot divide through zero
+            elif self.state["rw_inventories"][rw_id - 1] == 0:  # elif necessary because cannot divide through zero
                 rw_reward = 1
             else:
-                rw_reward = 1/(self.state[rw_id - 1] + 1)  # Hyperbel
+                rw_reward = 1/(self.state["rw_inventories"][rw_id - 1] + 1)  # Hyperbel
             reward += rw_reward
         reward /= self.number_of_rw
 
@@ -144,7 +153,7 @@ if __name__ == "__main__":
                       shipment_amount=10,
                       manufacturer=True)
 
-    model = PPO("MlpPolicy", env, verbose=1)
+    model = PPO("MultiInputPolicy", env, verbose=1)
     model.learn(total_timesteps=10000)
     
     # Reset environment for simulation
