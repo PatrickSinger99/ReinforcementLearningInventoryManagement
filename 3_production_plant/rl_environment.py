@@ -33,16 +33,10 @@ class Environment(gym.Env):
             # Inventory state of the central warehouse
             "cw_inventory": gym.spaces.Discrete(cw_inventory_limit + 1)
         }
-
         self.observation_space = gym.spaces.Dict(obs_space)
 
-        # The state is the current inventory level
-        rw_state_list = []
-        for rw_id in self.simulation.get_regional_warehouses():
-            rw_state_list.append(self.simulation.get_regional_warehouse_by_id(rw_id).get_inventory_amount())
-
-        self.state = {"rw_inventories": np.array(rw_state_list),
-                      "cw_inventory": self.simulation.get_central_warehouse().get_inventory_amount()}
+        # Set initial state
+        self.state = self.get_state()
 
         # Number of steps per simulation
         self.sim_length = sim_length
@@ -59,6 +53,19 @@ class Environment(gym.Env):
         self.total_shipments = 0
 
         self.total_reward = []
+
+    def get_state(self):
+        # Build state component regional warehouse inventories
+        rw_inv_state_list = []
+        for rw_id in self.simulation.get_regional_warehouses():
+            rw_inv_state_list.append(self.simulation.get_regional_warehouse_by_id(rw_id).get_inventory_amount())
+
+        # Concat all components to list
+        current_state = {"rw_inventories": np.array(rw_inv_state_list),
+                         "cw_inventory": self.simulation.get_central_warehouse().get_inventory_amount()
+                         }
+
+        return current_state
 
     def print_environment_information(self):
         print("Environment Information")
@@ -82,7 +89,7 @@ class Environment(gym.Env):
         self.total_shipments = 0
 
         # Returns value that is within observation space
-        return {"rw_inventories": np.array([0]*self.number_of_rw), "cw_inventory": 0}
+        return self.get_state()
 
     def step(self, action):
         # Step simulation
@@ -95,9 +102,7 @@ class Environment(gym.Env):
                 self.total_shipments += 1
 
         # Update state from simulation (Simulation handels demand)
-        for rw_id in self.simulation.get_regional_warehouses():
-            self.state["rw_inventories"][rw_id - 1] = self.simulation.get_regional_warehouse_by_id(rw_id).get_inventory_amount()
-        self.state["cw_inventory"] = self.simulation.get_central_warehouse().get_inventory_amount()
+        self.state = self.get_state()
 
         # Reward function based on inventory amount
         reward = 0
