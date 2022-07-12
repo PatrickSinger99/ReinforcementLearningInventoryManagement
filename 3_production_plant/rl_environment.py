@@ -1,8 +1,8 @@
 from simulation.simulation import *
 import gym
 import numpy as np
-from stable_baselines.common.policies import MlpPolicy
-from stable_baselines import PPO2
+#from stable_baselines.common.policies import MlpPolicy
+from stable_baselines3 import PPO
 
 
 """Reinforcement Learning Evironment class"""
@@ -144,7 +144,7 @@ if __name__ == "__main__":
                       shipment_amount=10,
                       manufacturer=True)
 
-    model = PPO2(MlpPolicy, env, verbose=1)
+    model = PPO("MlpPolicy", env, verbose=1)
     model.learn(total_timesteps=10000)
     
     # Reset environment for simulation
