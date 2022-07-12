@@ -129,7 +129,7 @@ class Simulation:
 
     # return all rw and cw shipments that are in transit
     def get_all_active_shipments(self):
-        return self._in_transit_shipments, self._in_transit_cw_shipments
+        return self._in_transit_shipments
 
     # Step simulation
     # - Finish shipments
