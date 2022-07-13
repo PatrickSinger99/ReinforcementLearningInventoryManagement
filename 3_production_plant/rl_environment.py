@@ -35,14 +35,13 @@ class Environment(gym.Env):
         obs_space = {
             # Inventory state of every regional warehouse (Plus 1 to size 1 because inventory of 0 is a possibility)
             "rw_inventories": gym.spaces.MultiDiscrete(np.array([rw_inventory_limit + 1]*number_of_regional_wh)),
-            # Inventory state of the central warehouse
-            "cw_inventory": gym.spaces.Discrete(cw_inventory_limit + 1),
             "shipments": gym.spaces.MultiDiscrete(np.array([2]*number_of_regional_wh))
         }
-        self.observation_space = gym.spaces.Dict(obs_space)
+        if manufacturer:
+            # Inventory state of the central warehouse
+            obs_space["cw_inventory"] = gym.spaces.Discrete(cw_inventory_limit + 1)
 
-        # Set initial state
-        self.state = self.get_state()
+        self.observation_space = gym.spaces.Dict(obs_space)
 
         # Number of steps per simulation
         self.sim_length = sim_length
@@ -53,6 +52,10 @@ class Environment(gym.Env):
         self.number_of_rw = number_of_regional_wh
         self.shipment_amount = shipment_amount
         self.cw_shipment_amount = cw_shipment_amount
+        self.manufacturer = manufacturer
+
+        # Set initial state
+        self.state = self.get_state()
 
         # Values for final evaluation
         self.total_lost_sales = 0
@@ -80,9 +83,11 @@ class Environment(gym.Env):
 
         # Concat all components to list
         current_state = {"rw_inventories": np.array(rw_inv_state_list),
-                         "cw_inventory": self.simulation.get_central_warehouse().get_inventory_amount(),
                          "shipments": np.array(rw_shipment_state_list)
                          }
+
+        if self.manufacturer:
+            current_state["cw_inventory"] = self.simulation.get_central_warehouse().get_inventory_amount()
 
         return current_state
 
@@ -163,9 +168,10 @@ class Environment(gym.Env):
 
         # Write info
         step_info = {"Steps left:": self.total_steps, "RW Invs:": self.state["rw_inventories"].tolist(), "Shipments": self.state["shipments"].tolist(),
-                     "CW Inv:": self.state["cw_inventory"], "Action:": action, "Reward:": round(reward, 2)}
+                     "Action:": action, "Reward:": round(reward, 2)}
 
         if self.simulation.get_manufacturer():
+            step_info["CW Inv:"] = self.state["cw_inventory"]
             step_info["Manufacturer:"] = self.simulation.get_manufacturer().get_inventory_amount()
 
         return self.state, reward, done, step_info
