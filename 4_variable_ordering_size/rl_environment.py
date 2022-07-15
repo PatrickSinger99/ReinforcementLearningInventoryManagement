@@ -10,8 +10,8 @@ from stable_baselines3 import PPO
 class Environment(gym.Env):
 
     def __init__(self, number_of_regional_wh, rw_inventory_limit, cw_inventory_limit, demand, lead_time,
-                 shipment_amount, cw_shipment_amount, manufacturer, mf_prod_capacity, max_min_price_per_unit,
-                 price_multiplier, sim_length=50):
+                 shipment_amount, cw_shipment_amount, manufacturer, mf_prod_capacity, shipment_var_cost_per_unit,
+                 shipment_fixed_cost, inventory_holding_cost_multiplier, sim_length=50):
         super().__init__()
 
         # Create distribution network simulation
@@ -52,8 +52,9 @@ class Environment(gym.Env):
         self.shipment_amount = shipment_amount
         self.cw_shipment_amount = cw_shipment_amount
         self.manufacturer = manufacturer
-        self.max_min_price_per_unit = max_min_price_per_unit
-        self.price_multiplier = price_multiplier
+        self.shipment_var_cost_per_unit = shipment_var_cost_per_unit
+        self.shipment_fixed_cost = shipment_fixed_cost
+        self.inventory_holding_cost_multiplier = inventory_holding_cost_multiplier
 
         # Set initial state
         self.state = self.get_state()
@@ -92,26 +93,16 @@ class Environment(gym.Env):
 
         return current_state
 
-    def calc_price_per_unit(self, amount):
-        if len(self.shipment_amount) > 1:
-            max_price = self.max_min_price_per_unit[0]
-            min_price = self.max_min_price_per_unit[1]
-            max_amount = max(self.shipment_amount)
-
-            return round(max_price - (amount - 1) * ((max_price - min_price) / (max_amount - 1)), 2)
-
-        else:
-            return 1
-
     def print_environment_information(self):
         print("Environment Information")
         print("-----------------------")
+        print("-> Gym spaces:")
         print("Observation space:", self.observation_space)
         print("Action space:", self.action_space)
         print("Starting state:", self.state)
-        print("Reward penalty per unit shipped:")
-        print("Max = " + str(round(self.max_min_price_per_unit[0]*self.price_multiplier, 2)))
-        print("Min = " + str(round(self.max_min_price_per_unit[1]*self.price_multiplier, 2)))
+        print("\n-> Reward penalty per shipment size:")
+        for size in self.shipment_amount:
+            print("Shipment of " + str(size) + ": " + str(self.shipment_fixed_cost + size * self.shipment_var_cost_per_unit))
         print("_"*80)  # Separator
 
     def reset(self):
@@ -159,12 +150,12 @@ class Environment(gym.Env):
             if self.simulation.get_regional_warehouse_by_id(rw_id).get_lost_sales_last_round() != 0:
                 rw_reward = -1
             else:
-                rw_reward = 1/(self.state["rw_inventories"][rw_id - 1] + 1)  # Hyperbel
+                rw_reward = self.inventory_holding_cost_multiplier/(self.state["rw_inventories"][rw_id - 1] + 1)  # Hyperbel
 
                 # Shipping cost
                 if action[rw_id - 1] != 0:
-                    print("lost:", self.price_multiplier * self.shipment_amount[action[rw_id - 1]-1] * self.calc_price_per_unit(self.shipment_amount[action[rw_id - 1]-1]))
-                    rw_reward -= self.price_multiplier * self.shipment_amount[action[rw_id - 1]-1] * self.calc_price_per_unit(self.shipment_amount[action[rw_id - 1]-1])
+                    rw_reward -= self.shipment_fixed_cost + \
+                                 self.shipment_amount[action[rw_id - 1]-1] * self.shipment_var_cost_per_unit
                     if rw_reward < -1:
                         rw_reward = -1
 
