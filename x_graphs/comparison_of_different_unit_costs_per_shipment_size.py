@@ -29,7 +29,7 @@ plt.subplot(1, 2, 2)
 
 option_1 = [0, 8, 6, 4, 2, 0, 8, 6, 4, 2, 0, 8, 6, 4, 2, 0, 8, 6, 4, 2, 0, 8, 6, 4, 2, 0]
 option_2 = [0, 8, 6, 4, 2, 0, 4, 2, 0, 4, 2, 0, 4, 2, 0, 4, 2, 0, 4, 2, 0, 4, 2, 0, 4, 2]
-# [8, 6, 4, 2, 0, 10, 8, 6, 4, 2, 0, 10, 8, 6, 4, 2, 0, 10, 8, 6, 4, 2, 0, 10, 8]
+
 plt.plot(option_1, label="Szenario 1: Low Fixed Costs / High Variable Costs", color="#66C2A5", linewidth=2)
 plt.plot(option_2, label="Szenario 2: High Fixed Costs / Low Variable Costs", color="#FC8D62", linewidth=2)
 plt.legend()
