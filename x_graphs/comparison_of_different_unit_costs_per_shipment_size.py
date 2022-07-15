@@ -16,8 +16,8 @@ print(option_2)
 plt.rcParams["figure.figsize"] = (10, 4.2)
 
 plt.subplot(1, 2, 1)
-plt.plot(option_1, label="Low Fixed costs / High Variable Costs", color="#66C2A5")
-plt.plot(option_2, label="High Fixed costs / Low Variable Costs", color="#FC8D62")
+plt.plot(option_1, label="Szenario 1: Low Fixed Costs / High Variable Costs", color="#66C2A5")
+plt.plot(option_2, label="Szenario 2: High Fixed Costs / Low Variable Costs", color="#FC8D62")
 plt.legend()
 plt.ylabel("Reward Penalty")
 plt.xlabel("Shipment Amount")
@@ -30,8 +30,8 @@ plt.subplot(1, 2, 2)
 option_1 = [0, 8, 6, 4, 2, 0, 8, 6, 4, 2, 0, 8, 6, 4, 2, 0, 8, 6, 4, 2, 0, 8, 6, 4, 2, 0]
 option_2 = [0, 8, 6, 4, 2, 0, 4, 2, 0, 4, 2, 0, 4, 2, 0, 4, 2, 0, 4, 2, 0, 4, 2, 0, 4, 2]
 # [8, 6, 4, 2, 0, 10, 8, 6, 4, 2, 0, 10, 8, 6, 4, 2, 0, 10, 8, 6, 4, 2, 0, 10, 8]
-plt.plot(option_1, label="Low Fixed costs / High Variable Costs", color="#66C2A5", linewidth=2)
-plt.plot(option_2, label="High Fixed costs / Low Variable Costs", color="#FC8D62", linewidth=2)
+plt.plot(option_1, label="Szenario 1: Low Fixed Costs / High Variable Costs", color="#66C2A5", linewidth=2)
+plt.plot(option_2, label="Szenario 2: High Fixed Costs / Low Variable Costs", color="#FC8D62", linewidth=2)
 plt.legend()
 plt.ylabel("Inventory level")
 plt.xlabel("Step")
