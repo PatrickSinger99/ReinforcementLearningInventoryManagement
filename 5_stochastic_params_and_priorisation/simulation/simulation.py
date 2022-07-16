@@ -12,7 +12,9 @@ class Simulation:
                  cw_inventory_limit=100,
                  customer_demand=[1],
                  manufacturer=False,
-                 manufacturer_production_capacity=10):
+                 manufacturer_production_capacity=10,
+                 demand_fluctuation=0
+                 ):
 
         # Variables
         self._round = 1
@@ -31,6 +33,7 @@ class Simulation:
             new_rw = RegionalWarehouse(rw_inventory_limit)
             new_rw.set_id(rw_id_count)
             new_rw.get_customer().set_demand_per_step(customer_demand[i])
+            new_rw.get_customer().set_demand_fluctuation(demand_fluctuation)
 
             self._regional_warehouses[rw_id_count] = new_rw
             rw_id_count += 1

@@ -2,6 +2,7 @@ from simulation.simulation import *
 import gym
 import numpy as np
 from stable_baselines3 import PPO
+import random
 
 
 """Reinforcement Learning Evironment class"""
@@ -11,7 +12,10 @@ class Environment(gym.Env):
 
     def __init__(self, number_of_regional_wh, rw_inventory_limit, cw_inventory_limit, demand, lead_time,
                  shipment_amount, cw_shipment_amount, manufacturer, mf_prod_capacity, shipment_var_cost_per_unit,
-                 shipment_fixed_cost, inventory_holding_cost_multiplier, sim_length=50):
+                 shipment_fixed_cost, inventory_holding_cost_multiplier, demand_fluctuation, lead_time_fluctuation,
+                 sim_length=50):
+
+        # Initiate gym.Env
         super().__init__()
 
         # Create distribution network simulation
@@ -20,7 +24,8 @@ class Environment(gym.Env):
                                      cw_inventory_limit=cw_inventory_limit,
                                      customer_demand=demand,
                                      manufacturer=manufacturer,
-                                     manufacturer_production_capacity=mf_prod_capacity)
+                                     manufacturer_production_capacity=mf_prod_capacity,
+                                     demand_fluctuation=demand_fluctuation)
 
         # Creation of action space
         # Per warehouse the number of action depends on the nuber of possible shipment amounts
@@ -55,6 +60,7 @@ class Environment(gym.Env):
         self.shipment_var_cost_per_unit = shipment_var_cost_per_unit
         self.shipment_fixed_cost = shipment_fixed_cost
         self.inventory_holding_cost_multiplier = inventory_holding_cost_multiplier
+        self.lead_time_fluctuation = lead_time_fluctuation
 
         # Set initial state
         self.state = self.get_state()
@@ -131,13 +137,15 @@ class Environment(gym.Env):
         # For every RW, send shipment if action = 1
         for rw_id in self.simulation.get_regional_warehouses():
             if action[rw_id - 1] != 0:
-                self.simulation.start_shipment(rw_id=rw_id, amount=self.shipment_amount[action[rw_id - 1]-1], lead_time=self.lead_time)
+                self.simulation.start_shipment(rw_id=rw_id, amount=self.shipment_amount[action[rw_id - 1]-1],
+                                               lead_time=self.get_lead_time_with_fluctuation())
                 self.total_shipments += 1
 
         # Shipment action for cw
         if self.simulation.get_manufacturer():
             if action[-1] == 1:
-                self.simulation.start_cw_shipment(amount=self.cw_shipment_amount, lead_time=self.lead_time)
+                self.simulation.start_cw_shipment(amount=self.cw_shipment_amount,
+                                                  lead_time=self.get_lead_time_with_fluctuation())
                 self.total_shipments += 1
 
         # Update state from simulation (Simulation handels demand)
@@ -173,7 +181,8 @@ class Environment(gym.Env):
 
         # Count up eval parameters
         self.total_reward_gained += reward
-        self.total_lost_sales += self.simulation.get_regional_warehouse_by_id(1).get_lost_sales_last_round()
+        for rw_id in self.simulation.get_regional_warehouses():
+            self.total_lost_sales += self.simulation.get_regional_warehouse_by_id(rw_id).get_lost_sales_last_round()
 
         # Steps left
         self.total_steps -= 1
@@ -191,6 +200,14 @@ class Environment(gym.Env):
             step_info["Manufacturer:"] = self.simulation.get_manufacturer().get_inventory_amount()
 
         return self.state, reward, done, step_info
+
+    def get_lead_time_with_fluctuation(self):
+        new_lead_time = random.randint(self.lead_time - self.lead_time_fluctuation,
+                                       self.lead_time + self.lead_time_fluctuation)
+        if new_lead_time < 1:
+            new_lead_time = 1
+
+        return new_lead_time
 
     def evaluation_parameters(self):
         return {"total_shipments": self.total_shipments,
