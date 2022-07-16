@@ -50,6 +50,7 @@ class Environment(gym.Env):
         # Number of steps per simulation
         self.sim_length = sim_length
         self.total_steps = self.sim_length
+        self.current_round = 1
 
         # Simulation parameters
         self.lead_time = lead_time
@@ -113,6 +114,7 @@ class Environment(gym.Env):
 
     def reset(self):
         self.total_steps = self.sim_length
+        self.current_round = 1
 
         # Reset simulation
         self.simulation.reset()
@@ -192,12 +194,14 @@ class Environment(gym.Env):
             done = False
 
         # Write info
-        step_info = {"Steps left:": self.total_steps, "RW Invs:": self.state["rw_inventories"].tolist(), "Shipments": self.state["shipments"].tolist(),
+        step_info = {"Round:": self.current_round, "RW Invs:": self.state["rw_inventories"].tolist(), "Shipments": self.state["shipments"].tolist(),
                      "Action:": action, "Reward:": round(reward, 2)}
 
         if self.simulation.get_manufacturer():
             step_info["CW Inv:"] = self.state["cw_inventory"]
             step_info["Manufacturer:"] = self.simulation.get_manufacturer().get_inventory_amount()
+
+        self.current_round += 1
 
         return self.state, reward, done, step_info
 
