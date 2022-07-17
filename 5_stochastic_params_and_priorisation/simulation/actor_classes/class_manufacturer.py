@@ -41,4 +41,3 @@ class Manufacturer:
 
     def step(self):
         self.set_inventory_amount(add=self._production_capacity_per_step)
-        
