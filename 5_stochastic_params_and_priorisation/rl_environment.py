@@ -13,7 +13,7 @@ class Environment(gym.Env):
     def __init__(self, number_of_regional_wh, rw_inventory_limit, cw_inventory_limit, demand, lead_time,
                  shipment_amount, cw_shipment_amount, manufacturer, mf_prod_capacity, shipment_var_cost_per_unit,
                  shipment_fixed_cost, inventory_holding_cost_multiplier, demand_fluctuation, lead_time_fluctuation,
-                 sim_length=50):
+                 cw_inventory_holding_cost_multiplier, sim_length=50):
 
         # Initiate gym.Env
         super().__init__()
@@ -61,6 +61,7 @@ class Environment(gym.Env):
         self.shipment_var_cost_per_unit = shipment_var_cost_per_unit
         self.shipment_fixed_cost = shipment_fixed_cost
         self.inventory_holding_cost_multiplier = inventory_holding_cost_multiplier
+        self.cw_inventory_holding_cost_multiplier = cw_inventory_holding_cost_multiplier
         self.lead_time_fluctuation = lead_time_fluctuation
 
         # Set initial state
@@ -109,7 +110,8 @@ class Environment(gym.Env):
         print("Starting state:", self.state)
         print("\n-> Reward penalty per shipment size:")
         for size in self.shipment_amount:
-            print("Shipment of " + str(size) + ": " + str(self.shipment_fixed_cost + size * self.shipment_var_cost_per_unit))
+            print("Shipment of " + str(size) + ": " +
+                  str(round(self.shipment_fixed_cost + size * self.shipment_var_cost_per_unit, 2)))
         print("_"*80)  # Separator
 
     def reset(self):
@@ -173,7 +175,7 @@ class Environment(gym.Env):
 
         # Check CW if manufacturer is enabled
         if self.simulation.get_manufacturer():
-            reward += .25/(self.state["cw_inventory"] + 1)
+            reward += self.cw_inventory_holding_cost_multiplier/(self.state["cw_inventory"] + 1)
 
         # Calculate combined reward
         if self.simulation.get_manufacturer():

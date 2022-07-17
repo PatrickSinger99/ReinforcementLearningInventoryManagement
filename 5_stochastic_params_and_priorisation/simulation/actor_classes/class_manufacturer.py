@@ -20,8 +20,8 @@ class Manufacturer:
     def get_inventory_amount(self):
         return self._inventory_amount
 
-    def step(self):
-        self._inventory_amount += self._production_capacity_per_step
+    def get_inventory_limit(self):
+        return self._inventory_limit
 
     def set_inventory_amount(self, total_amount=None, add=0, remove=0):
         if total_amount is not None:
@@ -38,3 +38,7 @@ class Manufacturer:
         # Check if inventory falls below 0 and correct
         if self._inventory_amount < 0:
             self._inventory_amount = 0
+
+    def step(self):
+        self.set_inventory_amount(add=self._production_capacity_per_step)
+        
