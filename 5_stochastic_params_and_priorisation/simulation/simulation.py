@@ -13,13 +13,15 @@ class Simulation:
                  customer_demand=[1],
                  manufacturer=False,
                  manufacturer_production_capacity=10,
-                 demand_fluctuation=0
+                 demand_fluctuation=0,
+                 customer_priorities=[1]
                  ):
 
         # Variables
         self._round = 1
         self._in_transit_shipments = []
         self._in_transit_cw_shipments = []
+        self._priorities = self.calculate_priorities(customer_priorities)
 
         # Instantiate actors
         self._central_warehouse = CentralWarehouse(cw_inventory_limit)  # Saved as class object
@@ -34,6 +36,7 @@ class Simulation:
             new_rw.set_id(rw_id_count)
             new_rw.get_customer().set_demand_per_step(customer_demand[i])
             new_rw.get_customer().set_demand_fluctuation(demand_fluctuation)
+            new_rw.get_customer().set_priority(self._priorities[i])
 
             self._regional_warehouses[rw_id_count] = new_rw
             rw_id_count += 1
@@ -65,6 +68,17 @@ class Simulation:
     def get_manufacturer(self):
         return self._manufacturer
 
+    def calculate_priorities(self, priorities):
+        max_val = max(priorities)
+        val = 1 / (max_val + 1)
+        min_val = 1 - max_val * val
+
+        new_prio = []
+        for prio in priorities:
+            new_prio.append(round(prio * val + min_val, 2))
+
+        return new_prio
+
     # Print distribution network state
     def print_state(self):
         title = "Simulation | Round " + str(self._round)
@@ -88,7 +102,8 @@ class Simulation:
             print(self._regional_warehouses[rw].get_name() + " ; ID:",
                   self._regional_warehouses[rw].get_id(), "; Inventory:",
                   self._regional_warehouses[rw].get_inventory_amount(), "; Demand:",
-                  self._regional_warehouses[rw].get_customer().get_demand_per_step(), "; Lost sales:",
+                  self._regional_warehouses[rw].get_customer().get_demand_per_step(), "; Priority:",
+                  self._regional_warehouses[rw].get_customer().get_priority(), "; Lost sales:",
                   self._regional_warehouses[rw].get_lost_sales())
 
         if self._manufacturer:
@@ -133,6 +148,9 @@ class Simulation:
     # return all rw and cw shipments that are in transit
     def get_all_active_shipments(self):
         return self._in_transit_shipments
+
+    def get_all_active_cw_shipments(self):
+        return self._in_transit_cw_shipments
 
     # Step simulation
     # - Finish shipments

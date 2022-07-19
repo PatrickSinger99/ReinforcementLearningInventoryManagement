@@ -3,6 +3,7 @@ import gym
 import numpy as np
 from stable_baselines3 import PPO
 import random
+import itertools
 
 
 """Reinforcement Learning Evironment class"""
@@ -13,7 +14,8 @@ class Environment(gym.Env):
     def __init__(self, number_of_regional_wh, rw_inventory_limit, cw_inventory_limit, demand, lead_time,
                  shipment_amount, cw_shipment_amount, manufacturer, mf_prod_capacity, shipment_var_cost_per_unit,
                  shipment_fixed_cost, inventory_holding_cost_multiplier, demand_fluctuation, lead_time_fluctuation,
-                 cw_inventory_holding_cost_multiplier, sim_length=50):
+                 cw_inventory_holding_cost_multiplier, customer_priorities, use_single_value_action_space=False,
+                 sim_length=50):
 
         # Initiate gym.Env
         super().__init__()
@@ -25,7 +27,8 @@ class Environment(gym.Env):
                                      customer_demand=demand,
                                      manufacturer=manufacturer,
                                      manufacturer_production_capacity=mf_prod_capacity,
-                                     demand_fluctuation=demand_fluctuation)
+                                     demand_fluctuation=demand_fluctuation,
+                                     customer_priorities=customer_priorities)
 
         # Creation of action space
         # Per warehouse the number of action depends on the nuber of possible shipment amounts
@@ -33,7 +36,12 @@ class Environment(gym.Env):
         if manufacturer:
             action_space += [2]
 
-        self.action_space = gym.spaces.MultiDiscrete(action_space)
+        # Convert to single action value if use_single_value_action_space is true
+        if not use_single_value_action_space:
+            self.action_space = gym.spaces.MultiDiscrete(action_space)
+        else:
+            self.action_conversion_dict = self.create_actions_conversion_dict(action_space)
+            self.action_space = gym.spaces.Discrete(len(self.action_conversion_dict))
 
         # Observation space is the inventory amount of the regional warehouse
         obs_space = {
@@ -44,6 +52,7 @@ class Environment(gym.Env):
         if manufacturer:
             # Inventory state of the central warehouse
             obs_space["cw_inventory"] = gym.spaces.Discrete(cw_inventory_limit + 1)
+            obs_space["cw_shipment"] = gym.spaces.Discrete(2)
 
         self.observation_space = gym.spaces.Dict(obs_space)
 
@@ -63,6 +72,7 @@ class Environment(gym.Env):
         self.inventory_holding_cost_multiplier = inventory_holding_cost_multiplier
         self.cw_inventory_holding_cost_multiplier = cw_inventory_holding_cost_multiplier
         self.lead_time_fluctuation = lead_time_fluctuation
+        self.use_single_value_action_space = use_single_value_action_space
 
         # Set initial state
         self.state = self.get_state()
@@ -97,7 +107,12 @@ class Environment(gym.Env):
                          }
 
         if self.manufacturer:
-            current_state["cw_inventory"] = self.simulation.get_central_warehouse().get_inventory_amount()
+            # np.intc used because DQN algorithm needs .space method not included in regular ints
+            current_state["cw_inventory"] = np.intc(self.simulation.get_central_warehouse().get_inventory_amount())
+            if len(self.simulation.get_all_active_cw_shipments()) == 0:
+                current_state["cw_shipment"] = np.intc(0)
+            else:
+                current_state["cw_shipment"] = np.intc(1)
 
         return current_state
 
@@ -113,6 +128,33 @@ class Environment(gym.Env):
             print("Shipment of " + str(size) + ": " +
                   str(round(self.shipment_fixed_cost + size * self.shipment_var_cost_per_unit, 2)))
         print("_"*80)  # Separator
+
+    def create_actions_conversion_dict(self, action_space):
+        actions_as_lists = []
+
+        for entry in action_space:
+            new_list = []
+            for pos in range(entry):
+                new_list.append(pos)
+            actions_as_lists.append(new_list)
+
+        actions_dict = {}
+        all_pos_action_comb = list(itertools.product(*actions_as_lists))
+
+        count = 0
+        for action_combination in all_pos_action_comb:
+            actions_dict[count] = list(action_combination)
+            count += 1
+
+        return actions_dict
+
+    def convert_discrete_to_multi_discrete(self, discrete_action):
+        return self.action_conversion_dict[discrete_action]
+
+    def convert_nulti_discrete_to_discrete(self, multi_discrete_action):
+        for entry in self.action_conversion_dict:
+            if self.action_conversion_dict[entry] == multi_discrete_action:
+                return entry
 
     def reset(self):
         self.total_steps = self.sim_length
@@ -132,8 +174,17 @@ class Environment(gym.Env):
         return self.get_state()
 
     def step(self, action):
-        # Change action np array to list
-        action = action.tolist()
+
+        # convert single action value to multi
+        if self.use_single_value_action_space:
+            # print("Converted", action, "to", end=" ")
+            if type(action) != int:
+                action = action.item()
+            action = self.convert_discrete_to_multi_discrete(action)
+            # print(action)
+        else:
+            # Change action np array to list
+            action = action.tolist()
 
         # Step simulation
         self.simulation.step()
@@ -160,7 +211,8 @@ class Environment(gym.Env):
         # Check RWs
         for rw_id in self.simulation.get_regional_warehouses():
             if self.simulation.get_regional_warehouse_by_id(rw_id).get_lost_sales_last_round() != 0:
-                rw_reward = -1
+                # Negative reward based on the priorization of the RW customer
+                rw_reward = -self.simulation.get_regional_warehouse_by_id(rw_id).get_customer().get_priority()
             else:
                 rw_reward = self.inventory_holding_cost_multiplier/(self.state["rw_inventories"][rw_id - 1] + 1)  # Hyperbel
 

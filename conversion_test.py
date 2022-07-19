@@ -1,6 +1,6 @@
 import itertools
 
-action_space = [5, 5, 2]
+action_space = [2, 2]
 
 
 def create_actions_conversion_list():
@@ -38,9 +38,10 @@ def convert_nulti_discrete_to_discrete(multi_discrete_action):
 
 
 a = convert_discrete_to_multi_discrete(0)
-b = convert_nulti_discrete_to_discrete([0, 4, 0])
+#b = convert_nulti_discrete_to_discrete([0, 4, 0])
 print(a)
 print(b)
+print(len(actions_dict))
 
 
 

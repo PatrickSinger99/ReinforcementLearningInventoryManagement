@@ -93,7 +93,6 @@ class Environment(gym.Env):
 
         # Update state from simulation (Simulation handels demand)
         self.state = self.get_state()
-        print(self.state)
 
         # Dummy reward function
         if self.simulation.get_regional_warehouse_by_id(1).get_lost_sales_last_round() != 0:
