@@ -35,6 +35,9 @@ class Simulation:
         print("Simulation created with the following parameters:")
         self.print_state()
 
+    def get_round(self):
+        return self._round
+
     def get_central_warehouse(self):
         return self._central_warehouse
 
@@ -43,6 +46,9 @@ class Simulation:
 
     def get_regional_warehouse_by_id(self, rw_id):
         return self._regional_warehouses[rw_id]
+
+    def get_all_active_shipments(self):
+        return self._in_transit_shipments
 
     # Print distribution network state
     def print_state(self):
