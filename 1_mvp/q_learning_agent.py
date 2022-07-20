@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import random
-from rl_environment import Environment
+from rl_environment_q_learning import Environment
 
 import warnings
 warnings.filterwarnings("ignore")
