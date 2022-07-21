@@ -234,7 +234,6 @@ class Environment(gym.Env):
 
         # Update state from simulation (Simulation handels demand)
         self.state = self.get_state()
-        print(self.state)
 
         # Reward function based on inventory amount
         reward = 0
