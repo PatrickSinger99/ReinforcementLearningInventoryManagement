@@ -9,43 +9,45 @@ This repository contains the code for my bachelor thesis "Inventory Management i
 <details>
   <summary>Table of Contents</summary>
   <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
+    <li><a href="#about-the-project">About The Project</a></li>
+    <li><a href="#installation">Installation</a></li>
     <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
+    <li><a href="#project-organization">Project Organization</a></li>
   </ol>
 </details>
 
 
 
-<!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+This repository contains the results of my bachelors thesis on the application of reinforcement learning in logistics distribution networks and inventory management. The focus of this project was on the creation of an openAI Gym reinforcement learning environment containing a distribution network simulation. The implementation of different features was done in an iterative approach with frequent testing of the environment through common reinforcement learning agents from Stable-Baselines.
 
-Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `github_username`, `repo_name`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description`
+### Used Libraries
+* []() [OpenAI Gym](https://github.com/openai/gym)
+* []() [Stable-Baselines 3](https://github.com/DLR-RM/stable-baselines3)
+* []() [Tensorflow](https://www.tensorflow.org/)
+* []() [Matplotlib](https://matplotlib.org/)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
+## Installation
 
+As of July 2022, because of current library incompatibilities, [python version 3.7](https://www.python.org/downloads/release/python-370/) needs to be installed.
 
-### Built With
+Install the base Gym library with `pip install gym`
+Install stable-baselines with `pip install stable-baselines3`
+For compatibility reasons, an old version of tensorflow needs to be installed `pip install tensorflow==1.15.0`
 
-* [![Gym][gymlibrary.ml]][Gym-url]
+To display graphs in the main file, install matplotlib `pip install matplotlib`
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+## Usage
+
+To create an environment, use the "Environment" class in rl_environment.py OR open the main.ipynb file and run all cells.
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+## Project Organization
 
 <p align="right">(<a href="#top">back to top</a>)</p>
