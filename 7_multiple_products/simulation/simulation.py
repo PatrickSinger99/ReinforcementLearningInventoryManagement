@@ -1,9 +1,8 @@
 from simulation.actor_classes.class_warehouse import *
 from simulation.actor_classes.class_manufacturer import *
-import time
 
 
-"""Simulation class"""
+"""Class: Simulation"""
 
 
 class Simulation:
@@ -197,6 +196,7 @@ class Simulation:
         if self._manufacturer:
             self._manufacturer.step()
 
+    # Resets parameters back to initial values
     def reset(self):
         self._round = 1
         self._in_transit_shipments = []
@@ -205,14 +205,3 @@ class Simulation:
         self._central_warehouse.reset()
         for wh in self._regional_warehouses:
             self._regional_warehouses[wh].reset()
-
-
-if __name__ == "__main__":
-    s1 = Simulation(3)
-    s1.print_state()
-    s1.start_shipment(1, 100, 1)
-
-    for i in range(150):
-        s1.step()
-        s1.print_state()
-        time.sleep(.1)

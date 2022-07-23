@@ -38,6 +38,7 @@ class Warehouse(ABC):
     def get_inventory_amount(self):
         return self._inventory_amount
 
+    # Method can be used to eighter add/remove a certain amount from the inventory, or to overwrite it with a set value
     def set_inventory_amount(self, total_amount=None, add=0, remove=0):
         if total_amount is not None:
             self._inventory_amount = int(total_amount)
@@ -66,9 +67,11 @@ class CentralWarehouse(Warehouse):
     def __init__(self, inventory_limit):
         super().__init__(inventory_limit)
 
+        # Identification
         self._name = "central_warehouse"
         self._connected_regional_warehouses = {}
 
+    # Add regional warehouse to dictionary
     def add_regional_warehouse(self, rw):
         self._connected_regional_warehouses[rw.get_id()] = rw
 
@@ -81,6 +84,8 @@ class RegionalWarehouse(Warehouse):
 
     def __init__(self, inventory_limit):
         super().__init__(inventory_limit)
+
+        # Identification
         RegionalWarehouse.instance_count += 1
         self._name = "regional_warehouse_" + str(RegionalWarehouse.instance_count)
 
@@ -103,6 +108,7 @@ class RegionalWarehouse(Warehouse):
     def get_lost_sales_last_round(self):
         return self._lost_sales_last_round
 
+    # Step function applies demand to the inventory and counts potential lost sales in the last round
     def step(self):
         self._inventory_amount -= self._customer.get_demand_with_fluctuation()
 
@@ -114,19 +120,8 @@ class RegionalWarehouse(Warehouse):
         else:
             self._lost_sales_last_round = 0
 
+    # Resets parameters back to initial values
     def reset(self):
         self._inventory_amount = self._reset_inv_amount  # Set inventory to initial value
         self._lost_sales = 0
         self._lost_sales_last_round = 0
-
-
-if __name__ == "__main__":
-    c1 = CentralWarehouse(30)
-    r1 = RegionalWarehouse(30)
-    r2 = RegionalWarehouse(30)
-    r3 = RegionalWarehouse(30)
-
-    print(c1.get_id())
-    print(r1.get_id())
-    print(r2.get_id())
-    print(r3.get_name())

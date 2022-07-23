@@ -1,6 +1,9 @@
 import random
 
 
+"""Class: Customer"""
+
+
 class Customer:
     id_count = 0
 
@@ -10,6 +13,7 @@ class Customer:
         Customer.id_count += 1
         self._name = "customer_" + str(Customer.id_count)
 
+        # Define customer parameters
         self._demand_per_step = demand_per_step
         self._demand_fluctuation = demand_fluctuation
         self._priority = priority
@@ -35,6 +39,7 @@ class Customer:
     def get_demand_per_step(self):
         return self._demand_per_step
 
+    # Returns a demand value that was randomly chosen from the demand range defined by the fluctuation parameter
     def get_demand_with_fluctuation(self):
         new_demand = random.randint(self._demand_per_step - self._demand_fluctuation,
                                     self._demand_per_step + self._demand_fluctuation)

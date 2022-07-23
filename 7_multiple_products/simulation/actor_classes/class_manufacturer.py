@@ -1,6 +1,14 @@
+
+
+"""Class: Manufacturer"""
+
+
 class Manufacturer:
     def __init__(self, production_capacity_per_step):
+        # Identification
         self._name = "manufacturer"
+
+        # Parameters
         self._production_capacity_per_step = production_capacity_per_step
         self._inventory_amount = 100
         self._inventory_limit = 100
@@ -23,6 +31,7 @@ class Manufacturer:
     def get_inventory_limit(self):
         return self._inventory_limit
 
+    # Method can be used to eighter add/remove a certain amount from the inventory, or to overwrite it with a set value
     def set_inventory_amount(self, total_amount=None, add=0, remove=0):
         if total_amount is not None:
             self._inventory_amount = int(total_amount)
@@ -39,5 +48,6 @@ class Manufacturer:
         if self._inventory_amount < 0:
             self._inventory_amount = 0
 
+    # Add to inventory based on production rate
     def step(self):
         self.set_inventory_amount(add=self._production_capacity_per_step)
