@@ -1,6 +1,6 @@
 <div id="top"></div>
 
-# ReinforcementLearningInventoryManagement
+# Inventory Management in a Logistics Distribution Network through Reinforcement Learning
 
 
 <!-- TABLE OF CONTENTS -->
