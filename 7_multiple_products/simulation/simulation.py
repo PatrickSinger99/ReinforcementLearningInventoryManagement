@@ -2,7 +2,18 @@ from simulation.actor_classes.class_warehouse import *
 from simulation.actor_classes.class_manufacturer import *
 
 
-"""Class: Simulation"""
+"""
+Simulation class
+----------------
+@ number_of_regional_wh = Number of regional warehouses that will be simulated
+@ rw_inventory_limit = The maximum amout of stock a regional warehouse can hold
+@ cw_inventory_limit = The maximum amout of stock the central warehouse can hold
+@ customer_demand = List of demand values per RW. Needs one entry per RW
+@ manufacturer = Determines, if a manufacturer and CW inventory depletion is simulated
+@ manufacturer_production_capacity = amount of product a MF can produce per round
+@ demand_fluctuation = Determines the range the demand will fluctuate.
+@ customer_priorities = List of priorities for the RWs. Needs one entry per RW
+"""
 
 
 class Simulation:
@@ -29,10 +40,11 @@ class Simulation:
 
         # Create regional warehouses
         rw_id_count = 1
-
         for i in range(number_of_regional_wh):
             new_rw = RegionalWarehouse(rw_inventory_limit)
             new_rw.set_id(rw_id_count)
+
+            # Set customer parameters
             new_rw.get_customer().set_demand_per_step(customer_demand[i])
             new_rw.get_customer().set_demand_fluctuation(demand_fluctuation)
             new_rw.get_customer().set_priority(self._priorities[i])
@@ -44,7 +56,7 @@ class Simulation:
             self._central_warehouse.add_regional_warehouse(new_rw)
             new_rw.add_central_warehouse(self._central_warehouse)
 
-        # Create Manufacturer if set to True
+        # Create Manufacturer if set to True, create manufacturer instance
         if manufacturer:
             self._manufacturer = Manufacturer(manufacturer_production_capacity)
         else:
@@ -70,6 +82,7 @@ class Simulation:
     def get_manufacturer(self):
         return self._manufacturer
 
+    # Uses the input parameter for priorities and calulates the appropriate value for reward generation
     def calculate_priorities(self, priorities):
         max_val = max(priorities)
         val = 1 / (max_val + 1)
@@ -154,9 +167,7 @@ class Simulation:
     def get_all_active_cw_shipments(self):
         return self._in_transit_cw_shipments
 
-    # Step simulation
-    # - Finish shipments
-
+    # Step simulation: Finish shipments for RW and CW, Step RWs and manufacturer
     def step(self):
         # Current round
         self._round += 1

@@ -1,12 +1,34 @@
 from simulation.simulation import *
 import gym
 import numpy as np
-from stable_baselines3 import PPO
 import random
 import itertools
 
 
-"""Reinforcement Learning Evironment class"""
+"""
+Environment class
+-----------------
+@ number_of_regional_wh = Number of regional warehouses that will be simulated
+@ rw_inventory_limit = The maximum amout of stock a regional warehouse can hold
+@ cw_inventory_limit = The maximum amout of stock the central warehouse can hold
+@ demand = List of demand values per RW. Needs one entry per RW
+@ lead_time = Number of steps it takes a shipment to arrive at its destination
+@ shipment_amount = List of possible shipment sizes that can be initiated
+@ cw_shipment_amount = Shipment size of a shipment from the manufacturer to the CW
+@ manufacturer = Determines, if a manufacturer and CW inventory depletion is simulated
+@ mf_production_capacity = amount of product a MF can produce per round
+@ shipment_var_cost_per_unit = Cost per product shipped. Will be multiplied by shipment size
+@ shipment_fixed_cost = Fixed cost of one shipment. Not dependend on shipment size
+@ inventory_holding_cost_multiplier = Determines the maximum reward a RW inventory can generate (Applied to all RWs)
+@ demand_fluctuation = Determines the range the demand will fluctuate.
+@ lead_time_fluctuation = Determines the range on which shipment times can fluctuate
+@ cw_inventory_holding_cost_multiplier = Determines the maximum reward the CW inventory can generate
+@ customer_priorities = List of priorities for the RWs. Needs one entry per RW
+@ rw_inventory_holding_cost_drop_off = Determines the rate of which the reward drops off depending in RW stock
+@ cw_inventory_holding_cost_drop_off = Determines the rate of which the reward drops off depending in CW stock
+@ use_single_value_action_space = Converts action space to discrete type. Needed by some RL algorithms
+@ sim_length = The number of rounds played during one simulation
+"""
 
 
 class Environment(gym.Env):
@@ -30,7 +52,8 @@ class Environment(gym.Env):
                                      demand_fluctuation=demand_fluctuation,
                                      customer_priorities=customer_priorities)
 
-        # Creation of action space
+        """Action Space"""
+
         # Per warehouse the number of action depends on the nuber of possible shipment amounts
         action_space = [len(shipment_amount)+1]*number_of_regional_wh
         if manufacturer:
@@ -43,7 +66,8 @@ class Environment(gym.Env):
             self.action_conversion_dict = self.create_actions_conversion_dict(action_space)
             self.action_space = gym.spaces.Discrete(len(self.action_conversion_dict))
 
-        # Observation space is the inventory amount of the regional warehouse
+        """Observation Space"""
+
         obs_space = {
             # Inventory state of every regional warehouse (Plus 1 to size 1 because inventory of 0 is a possibility)
             "rw_inventories": gym.spaces.MultiDiscrete(np.array([rw_inventory_limit + 1]*number_of_regional_wh)),
@@ -59,6 +83,8 @@ class Environment(gym.Env):
             obs_space["cw_amount_in_transit"] = gym.spaces.Discrete(cw_shipment_amount * (lead_time + lead_time_fluctuation) + 1)
 
         self.observation_space = gym.spaces.Dict(obs_space)
+
+        """Environment Parameters"""
 
         # Number of steps per simulation
         self.sim_length = sim_length
@@ -90,8 +116,10 @@ class Environment(gym.Env):
         self.total_reward_gained = 0
         self.total_shipments = 0
 
+        # Saves total rewards over multiple episodes. Not affected by resets
         self.total_reward = []
 
+    """Creates new state dictionary. Fetches changes in the simualtion"""
     def get_state(self):
         # Build state component regional warehouse inventories
         rw_inv_state_list = []
@@ -122,6 +150,7 @@ class Environment(gym.Env):
                          "rw_amount_in_transit": np.array(rw_total_amount_on_way_state_list)
                          }
 
+        # Add manufacturer states if manufacturer is enabled
         if self.manufacturer:
             cw_next_arrival_state = 0
             cw_total_amount_in_transit = 0
@@ -137,6 +166,7 @@ class Environment(gym.Env):
                 for shipment in self.simulation.get_all_active_cw_shipments():
                     cw_total_amount_in_transit += shipment["amount"]
 
+                    # Determine next shipment
                     possible_next_shipment = shipment["arrival"] - self.simulation.get_round()
                     if cw_next_arrival_state == 0:
                         cw_next_arrival_state = possible_next_shipment
@@ -148,6 +178,7 @@ class Environment(gym.Env):
 
         return current_state
 
+    # Prints all environment specifications
     def print_environment_information(self):
         print("Environment Information")
         print("-----------------------")
@@ -161,6 +192,7 @@ class Environment(gym.Env):
                   str(round(self.shipment_fixed_cost + size * self.shipment_var_cost_per_unit, 2)))
         print("_"*80)  # Separator
 
+    # Create list that is used for action space conversion
     def create_actions_conversion_dict(self, action_space):
         actions_as_lists = []
 
@@ -180,14 +212,25 @@ class Environment(gym.Env):
 
         return actions_dict
 
+    # Converts single action value to list
     def convert_discrete_to_multi_discrete(self, discrete_action):
         return self.action_conversion_dict[discrete_action]
 
+    # Converts action list to single value
     def convert_nulti_discrete_to_discrete(self, multi_discrete_action):
         for entry in self.action_conversion_dict:
             if self.action_conversion_dict[entry] == multi_discrete_action:
                 return entry
 
+    """
+    Reset Method
+    ------------
+    - Resets values of simulation class instance
+    - Resets evaluation parameters
+    - Adds up total reward value
+    
+    @ returns state
+    """
     def reset(self):
         self.total_steps = self.sim_length
         self.current_round = 1
@@ -204,6 +247,18 @@ class Environment(gym.Env):
 
         # Returns value that is within observation space
         return self.get_state()
+
+    """
+    Step Method
+    -----------
+    1. Converts action space if necessary
+    2. Steps simulation class instance
+    3. Create RW and CW shipments based on agent action
+    4. Calculate reward based on inventory amounts and new shipment initializations
+    5. Count up evaluation parameters
+     
+    @return new state, reward, done/not done, user information about step
+    """
 
     def step(self, action):
 
@@ -286,6 +341,7 @@ class Environment(gym.Env):
         step_info = {"Round:": self.current_round, "RW Invs:": self.state["rw_inventories"].tolist(), "Shipments": self.state["shipments"].tolist(),
                      "Action:": action, "Reward:": round(reward, 2)}
 
+        # Add manufacturer info if enabled
         if self.simulation.get_manufacturer():
             step_info["CW Inv:"] = self.state["cw_inventory"]
             step_info["Manufacturer:"] = self.simulation.get_manufacturer().get_inventory_amount()
@@ -294,6 +350,7 @@ class Environment(gym.Env):
 
         return self.state, reward, done, step_info
 
+    # Determine a lead time with the fluctuation parameter
     def get_lead_time_with_fluctuation(self):
         new_lead_time = random.randint(self.lead_time - self.lead_time_fluctuation,
                                        self.lead_time + self.lead_time_fluctuation)
@@ -302,43 +359,8 @@ class Environment(gym.Env):
 
         return new_lead_time
 
+    # Return all eval parameters
     def evaluation_parameters(self):
         return {"total_shipments": self.total_shipments,
                 "total_lost_sales": self.total_lost_sales,
                 "total_reward_gained": round(self.total_reward_gained, 2)}
-
-
-if __name__ == "__main__":
-
-    # Display Q-Values
-    """
-    action_space_size = env.action_space.n
-    state_space_size = env.observation_space.n
-    q_table = np.zeros((state_space_size, action_space_size))
-    print(q_table)
-    """
-
-    # Create and train model
-    env = Environment(number_of_regional_wh=1,
-                      rw_inventory_limit=49,
-                      cw_inventory_limit=100,
-                      demand=[1],
-                      lead_time=2,
-                      shipment_amount=10,
-                      manufacturer=True,
-                      cw_shipment_amount=10,
-                      mf_prod_capacity=10)
-
-    model = PPO("MultiInputPolicy", env, verbose=1)
-    model.learn(total_timesteps=10000)
-    
-    # Reset environment for simulation
-    state = env.reset()
-    done = False
-
-    # Run simulation with model
-    while not done:
-        action, _states = model.predict(state)
-        state, reward, done, info = env.step(action)
-        print(info)
-        # env.simulation.print_state()
