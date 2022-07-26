@@ -149,7 +149,9 @@ If problems occur, compare all library versions to the collection below:
 
 ## Usage
 
-To create an environment, use the "Environment" class in rl_environment.py OR open the main.ipynb file and run all cells.
+If only the Environment is needed, the class can be found in the rl_environment.py file. It can be used as a standard openAI Gym environment as described in the official [Gym documentation](https://www.gymlibrary.ml/).
+
+The main.ipynb file provides a szenario in which the environment is getting set up and trained with a stable baselines model, as well as the application of the trained agent on a distribution network simulation.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
