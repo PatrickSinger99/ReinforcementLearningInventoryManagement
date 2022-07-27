@@ -109,8 +109,8 @@ class RegionalWarehouse(Warehouse):
         return self._lost_sales_last_round
 
     # Step function applies demand to the inventory and counts potential lost sales in the last round
-    def step(self):
-        self._inventory_amount -= self._customer.get_demand_with_fluctuation()
+    def step(self, current_round):
+        self._inventory_amount -= self._customer.get_demand_with_fluctuation(current_round)
 
         # Count up lost sales if inv is below zero
         if self._inventory_amount < 0:

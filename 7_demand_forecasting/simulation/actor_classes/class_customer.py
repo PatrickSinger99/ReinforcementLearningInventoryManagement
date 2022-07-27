@@ -7,7 +7,8 @@ import random
 class Customer:
     id_count = 0
 
-    def __init__(self, demand_per_step=1, demand_fluctuation=0, priority=1):
+    def __init__(self, demand_per_step=1, demand_fluctuation=0, priority=1, use_predefined_demand=False,
+                 predefined_demand=[]):
         # ID & name assignment
         self._id = Customer.id_count
         Customer.id_count += 1
@@ -17,6 +18,10 @@ class Customer:
         self._demand_per_step = demand_per_step
         self._demand_fluctuation = demand_fluctuation
         self._priority = priority
+
+        # Parameters for predefined demand
+        self._use_predefined_demand = use_predefined_demand
+        self._predefined_demand = predefined_demand
 
     def get_id(self):
         return self._id
@@ -39,14 +44,22 @@ class Customer:
     def get_demand_per_step(self):
         return self._demand_per_step
 
-    # Returns a demand value that was randomly chosen from the demand range defined by the fluctuation parameter
-    def get_demand_with_fluctuation(self):
-        new_demand = random.randint(self._demand_per_step - self._demand_fluctuation,
-                                    self._demand_per_step + self._demand_fluctuation)
-        if new_demand < 0:
-            new_demand = 0
+    def set_predefined_demand(self, demand_list):
+        self._predefined_demand = demand_list
+        self._use_predefined_demand = True
 
-        return new_demand
+    # Returns a demand value that was randomly chosen from the demand range defined by the fluctuation parameter
+    def get_demand_with_fluctuation(self, current_round):
+        if not self._use_predefined_demand:
+            new_demand = random.randint(self._demand_per_step - self._demand_fluctuation,
+                                        self._demand_per_step + self._demand_fluctuation)
+            if new_demand < 0:
+                new_demand = 0
+
+            return new_demand
+
+        else:
+            return self._predefined_demand[current_round-2]
 
     def get_demand_fluctuation(self):
         return self._demand_fluctuation

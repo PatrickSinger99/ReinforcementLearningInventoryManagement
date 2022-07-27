@@ -26,6 +26,8 @@ Environment class
 @ customer_priorities = List of priorities for the RWs. Needs one entry per RW
 @ rw_inventory_holding_cost_drop_off = Determines the rate of which the reward drops off depending in RW stock
 @ cw_inventory_holding_cost_drop_off = Determines the rate of which the reward drops off depending in CW stock
+@ use_advanced_demand_simulation
+@ demand_curve_length_multiplier
 @ use_single_value_action_space = Converts action space to discrete type. Needed by some RL algorithms
 @ sim_length = The number of rounds played during one simulation
 """
@@ -37,7 +39,8 @@ class Environment(gym.Env):
                  shipment_amount, cw_shipment_amount, manufacturer, mf_prod_capacity, shipment_var_cost_per_unit,
                  shipment_fixed_cost, inventory_holding_cost_multiplier, demand_fluctuation, lead_time_fluctuation,
                  cw_inventory_holding_cost_multiplier, customer_priorities, rw_inventory_holding_cost_drop_off,
-                 cw_inventory_holding_cost_drop_off, use_single_value_action_space=False, sim_length=50):
+                 cw_inventory_holding_cost_drop_off, use_advanced_demand_simulation=False,
+                 demand_curve_length_multiplier=1, use_single_value_action_space=False, sim_length=50):
 
         # Initiate gym.Env
         super().__init__()
@@ -50,7 +53,10 @@ class Environment(gym.Env):
                                      manufacturer=manufacturer,
                                      manufacturer_production_capacity=mf_prod_capacity,
                                      demand_fluctuation=demand_fluctuation,
-                                     customer_priorities=customer_priorities)
+                                     customer_priorities=customer_priorities,
+                                     sim_length=sim_length,
+                                     use_predefined_demand=use_advanced_demand_simulation,
+                                     demand_curve_length_multiplier=demand_curve_length_multiplier)
 
         """Action Space"""
 

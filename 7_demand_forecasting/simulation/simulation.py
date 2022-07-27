@@ -1,5 +1,7 @@
 from simulation.actor_classes.class_warehouse import *
 from simulation.actor_classes.class_manufacturer import *
+import random
+import numpy as np
 
 
 """
@@ -24,7 +26,11 @@ class Simulation:
                  manufacturer=False,
                  manufacturer_production_capacity=10,
                  demand_fluctuation=0,
-                 customer_priorities=[1]
+                 customer_priorities=[1],
+                 use_predefined_demand=False,
+                 sim_length=100,
+                 demand_curve_length_multiplier=1,
+                 re_roll_demand_on_reset=True
                  ):
 
         # Variables
@@ -32,6 +38,17 @@ class Simulation:
         self._in_transit_shipments = []
         self._in_transit_cw_shipments = []
         self._priorities = self.calculate_priorities(customer_priorities)
+        self._demand_fluctuation = demand_fluctuation
+        self._sim_length = sim_length
+
+        # Params for advanced demand simulation
+        self._use_predefined_demand = use_predefined_demand
+        self._re_roll_demand_on_reset = re_roll_demand_on_reset
+        self._demand_curve_length_multiplier = demand_curve_length_multiplier
+
+        if use_predefined_demand:
+            self._predefined_demands = []
+            self._predefined_demand_parameters = []
 
         # Instantiate actors
         self._central_warehouse = CentralWarehouse(cw_inventory_limit)  # Saved as class object
@@ -48,6 +65,13 @@ class Simulation:
             new_rw.get_customer().set_demand_per_step(customer_demand[i])
             new_rw.get_customer().set_demand_fluctuation(demand_fluctuation)
             new_rw.get_customer().set_priority(self._priorities[i])
+
+            if use_predefined_demand:
+                calculated_demand = self.calculate_demand_path(customer_demand[i], demand_curve_length_multiplier)
+                new_rw.get_customer().set_predefined_demand(calculated_demand["demand_path"])
+
+                self._predefined_demands.append(calculated_demand["demand_path"])
+                self._predefined_demand_parameters.append(calculated_demand["function_parameters"])
 
             self._regional_warehouses[rw_id_count] = new_rw
             rw_id_count += 1
@@ -82,6 +106,12 @@ class Simulation:
     def get_manufacturer(self):
         return self._manufacturer
 
+    def get_predefined_demands(self):
+        return self._predefined_demands
+
+    def get_predefined_demand_parameters(self):
+        return self._predefined_demand_parameters
+
     # Uses the input parameter for priorities and calulates the appropriate value for reward generation
     def calculate_priorities(self, priorities):
         max_val = max(priorities)
@@ -93,6 +123,32 @@ class Simulation:
             new_prio.append(round(prio * val + min_val, 2))
 
         return new_prio
+
+    def calculate_demand_path(self, demand, curve_interval):
+        # Get random values for function parameters
+        long_range = round(random.uniform(curve_interval * .02, curve_interval * .1), 2)
+        long_range_amplitude = self._demand_fluctuation
+        mid_range = round(random.uniform(curve_interval * .1, curve_interval * .3), 2)
+        mid_range_amplitude = round(random.uniform(.3, 1), 2)
+        random_start = round(random.uniform(0, 1 / long_range), 2)
+
+        # Save function parameters
+        function_parameters = {"long_range": long_range, "long_range_amplitude": long_range_amplitude,
+                               "mid_range": mid_range, "mid_range_amplitude": mid_range_amplitude,
+                               "random_start": random_start}
+
+        demand_path = []
+        for x in range(self._sim_length):
+            demand_function = demand + ((long_range_amplitude * np.sin(long_range * x - random_start))
+                                        - mid_range_amplitude * np.sin(mid_range * x))
+
+            # Check if smaller than zero
+            new_demand = int(round(demand_function, 0))
+            if new_demand < 0:
+                new_demand = 0
+            demand_path.append(new_demand)
+
+        return {"demand_path": demand_path, "function_parameters": function_parameters}
 
     # Print distribution network state
     def print_state(self):
@@ -201,7 +257,7 @@ class Simulation:
 
         # Step regional warehouses
         for rw in self._regional_warehouses:
-            self._regional_warehouses[rw].step()
+            self._regional_warehouses[rw].step(current_round=self._round)  # Current round needed for predefined demand
 
         # Step Manufacturer
         if self._manufacturer:
@@ -214,5 +270,21 @@ class Simulation:
         self._in_transit_cw_shipments = []
 
         self._central_warehouse.reset()
+
+        # Empty lists for advanced demand sim, if new demands are created after reset
+        if self._use_predefined_demand and self._re_roll_demand_on_reset:
+            self._predefined_demands = []
+            self._predefined_demand_parameters = []
+
         for wh in self._regional_warehouses:
+            # Reset RWs
             self._regional_warehouses[wh].reset()
+
+            # If advanced demand sim is enabled, create new demands every reset
+            if self._use_predefined_demand and self._re_roll_demand_on_reset:
+                demand = self._regional_warehouses[wh].get_customer().get_demand_per_step()
+                calculated_demand = self.calculate_demand_path(demand, self._demand_curve_length_multiplier)
+                self._regional_warehouses[wh].get_customer().set_predefined_demand(calculated_demand["demand_path"])
+
+                self._predefined_demands.append(calculated_demand["demand_path"])
+                self._predefined_demand_parameters.append(calculated_demand["function_parameters"])
