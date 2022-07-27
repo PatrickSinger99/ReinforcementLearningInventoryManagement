@@ -4,14 +4,15 @@
 
 
 class Manufacturer:
-    def __init__(self, production_capacity_per_step):
+    def __init__(self, production_capacity_per_step, inventory_limit=100):
         # Identification
         self._name = "manufacturer"
 
         # Parameters
         self._production_capacity_per_step = production_capacity_per_step
-        self._inventory_amount = 100
-        self._inventory_limit = 100
+        self._inventory_amount = int(inventory_limit/3)
+        self._inventory_limit = inventory_limit
+
 
     def get_name(self):
         return self._name
@@ -51,3 +52,6 @@ class Manufacturer:
     # Add to inventory based on production rate
     def step(self):
         self.set_inventory_amount(add=self._production_capacity_per_step)
+
+    def reset(self):
+        self._inventory_amount = int(self._inventory_limit/3)

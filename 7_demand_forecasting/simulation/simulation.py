@@ -13,8 +13,13 @@ Simulation class
 @ customer_demand = List of demand values per RW. Needs one entry per RW
 @ manufacturer = Determines, if a manufacturer and CW inventory depletion is simulated
 @ manufacturer_production_capacity = amount of product a MF can produce per round
+@ manufacturer_inventory_limit = Maximum inventory amount of the manufacturer
 @ demand_fluctuation = Determines the range the demand will fluctuate.
 @ customer_priorities = List of priorities for the RWs. Needs one entry per RW
+@ use_predefined_demand = Uses the advanced demand simulation
+@ sim_length = Simulation length of the simulation
+@ demand_curve_length_multiplier = Defines the width of the demand curve (Standard 1)
+@ re_roll_demand_on_reset = Every reset, the demand curve will be created new if enabled
 """
 
 
@@ -25,6 +30,7 @@ class Simulation:
                  customer_demand=[1],
                  manufacturer=False,
                  manufacturer_production_capacity=10,
+                 manufacturer_inventory_limit=100,
                  demand_fluctuation=0,
                  customer_priorities=[1],
                  use_predefined_demand=False,
@@ -82,7 +88,7 @@ class Simulation:
 
         # Create Manufacturer if set to True, create manufacturer instance
         if manufacturer:
-            self._manufacturer = Manufacturer(manufacturer_production_capacity)
+            self._manufacturer = Manufacturer(manufacturer_production_capacity, manufacturer_inventory_limit)
         else:
             self._manufacturer = False
 
@@ -288,3 +294,6 @@ class Simulation:
 
                 self._predefined_demands.append(calculated_demand["demand_path"])
                 self._predefined_demand_parameters.append(calculated_demand["function_parameters"])
+
+        if self._manufacturer:
+            self._manufacturer.reset()

@@ -39,7 +39,7 @@ class Environment(gym.Env):
                  shipment_amount, cw_shipment_amount, manufacturer, mf_prod_capacity, shipment_var_cost_per_unit,
                  shipment_fixed_cost, inventory_holding_cost_multiplier, demand_fluctuation, lead_time_fluctuation,
                  cw_inventory_holding_cost_multiplier, customer_priorities, rw_inventory_holding_cost_drop_off,
-                 cw_inventory_holding_cost_drop_off, use_advanced_demand_simulation=False,
+                 cw_inventory_holding_cost_drop_off, manufacturer_inventory_limit, use_advanced_demand_simulation=False,
                  demand_curve_length_multiplier=1, use_single_value_action_space=False, sim_length=50):
 
         # Initiate gym.Env
@@ -56,7 +56,8 @@ class Environment(gym.Env):
                                      customer_priorities=customer_priorities,
                                      sim_length=sim_length,
                                      use_predefined_demand=use_advanced_demand_simulation,
-                                     demand_curve_length_multiplier=demand_curve_length_multiplier)
+                                     demand_curve_length_multiplier=demand_curve_length_multiplier,
+                                     manufacturer_inventory_limit=manufacturer_inventory_limit)
 
         """Action Space"""
 
