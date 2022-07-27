@@ -19,7 +19,7 @@ Simulation class
 @ use_predefined_demand = Uses the advanced demand simulation
 @ sim_length = Simulation length of the simulation
 @ demand_curve_length_multiplier = Defines the width of the demand curve (Standard 1)
-@ re_roll_demand_on_reset = Every reset, the demand curve will be created new if enabled
+@ new_demand_curve_on_reset = Every reset, the demand curve will be created new if enabled
 """
 
 
@@ -36,7 +36,7 @@ class Simulation:
                  use_predefined_demand=False,
                  sim_length=100,
                  demand_curve_length_multiplier=1,
-                 re_roll_demand_on_reset=True
+                 new_demand_curve_on_reset=True
                  ):
 
         # Variables
@@ -49,7 +49,7 @@ class Simulation:
 
         # Params for advanced demand simulation
         self._use_predefined_demand = use_predefined_demand
-        self._re_roll_demand_on_reset = re_roll_demand_on_reset
+        self._re_roll_demand_on_reset = new_demand_curve_on_reset
         self._demand_curve_length_multiplier = demand_curve_length_multiplier
 
         if use_predefined_demand:
@@ -288,6 +288,7 @@ class Simulation:
 
             # If advanced demand sim is enabled, create new demands every reset
             if self._use_predefined_demand and self._re_roll_demand_on_reset:
+
                 demand = self._regional_warehouses[wh].get_customer().get_demand_per_step()
                 calculated_demand = self.calculate_demand_path(demand, self._demand_curve_length_multiplier)
                 self._regional_warehouses[wh].get_customer().set_predefined_demand(calculated_demand["demand_path"])
