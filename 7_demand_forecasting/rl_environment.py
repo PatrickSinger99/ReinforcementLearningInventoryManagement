@@ -77,6 +77,12 @@ class Environment(gym.Env):
 
         """Observation Space"""
 
+        # Value needed for space range generation & forecast method
+        self.max_possible_forecast = max(demand)*2 + demand_fluctuation
+
+        test_space = gym.spaces.Box(0, self.max_possible_forecast, shape=(number_of_regional_wh, 10))
+        print(test_space.sample())
+
         obs_space = {
             # Inventory state of every regional warehouse (Plus 1 to size 1 because inventory of 0 is a possibility)
             "rw_inventories": gym.spaces.MultiDiscrete(np.array([rw_inventory_limit + 1]*number_of_regional_wh)),
@@ -152,6 +158,18 @@ class Environment(gym.Env):
                     elif rw_next_arrival_state_list[rw_id-1] > possible_next_shipment:
                         rw_next_arrival_state_list[rw_id-1] = possible_next_shipment
 
+            # Forecasts
+            rw_demand_params = self.simulation.get_predefined_demand_parameters()[rw_id-1]
+            rw_strd_demand = self.simulation.get_regional_warehouse_by_id(rw_id).get_customer().get_demand_per_step()
+
+            forecast_dict = self.get_forecasts(self.simulation.get_round()-2, rw_strd_demand, rw_demand_params, 10, 1)
+            forecast_values = forecast_dict["deviating_forecast_values"]
+            """
+            print("RW", rw_id, "ROUND", self.simulation.get_round())
+            print("ACtual:", self.simulation.get_regional_warehouse_by_id(rw_id).get_customer().get_demand_with_fluctuation(self.simulation.get_round()))
+            print(self.simulation.get_predefined_demands()[rw_id-1][self.simulation.get_round()-2:self.simulation.get_round()+8])
+            print("Forecast", forecast_values)
+            """
         # Concat all components to list
         current_state = {"rw_inventories": np.array(rw_inv_state_list),
                          "shipments": np.array(rw_shipment_state_list),
@@ -186,6 +204,42 @@ class Environment(gym.Env):
             current_state["cw_amount_in_transit"] = np.intc(cw_total_amount_in_transit)
 
         return current_state
+
+    def get_forecasts(self, current_round, demand, params, forecast_range, forecast_deviation_factor=1.0):
+        true_forecast_values = []
+        deviating_forecast_values = []
+        final_deviating_forecast_values = []
+
+        for x in range(forecast_range):
+            days_in_future = x
+            x += current_round + 1
+            function_value = demand + (
+                        (params["long_range_amplitude"] * np.sin(params["long_range"] * x - params["random_start"])) -
+                        params["mid_range_amplitude"] * np.sin(params["mid_range"] * x))
+
+            true_forecast_values.append(function_value)
+            tamper_value = (demand * forecast_deviation_factor / forecast_range) * days_in_future
+            deviating_forecast_values.append(function_value + random.uniform(-tamper_value, tamper_value))
+
+        for value in deviating_forecast_values:
+            val_to_append = int(round(value, 0))
+            if val_to_append < 0:
+                val_to_append = 0
+            elif val_to_append > self.max_possible_forecast:
+                val_to_append = self.max_possible_forecast
+
+            final_deviating_forecast_values.append(val_to_append)
+
+        """
+        plt.plot(true_forecast_values)
+        plt.plot(deviating_forecast_values)
+        plt.plot(rounded_deviating_forecast_values)
+        plt.show()
+        """
+
+        return {"deviating_forecast_values": final_deviating_forecast_values,
+                "float_deviating_forecast_values": deviating_forecast_values,
+                "true_forecast_values": true_forecast_values}
 
     # Prints all environment specifications
     def print_environment_information(self):
