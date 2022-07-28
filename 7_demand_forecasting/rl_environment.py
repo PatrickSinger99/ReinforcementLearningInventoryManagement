@@ -26,11 +26,11 @@ Environment class
 @ customer_priorities = List of priorities for the RWs. Needs one entry per RW
 @ rw_inventory_holding_cost_drop_off = Determines the rate of which the reward drops off depending in RW stock
 @ cw_inventory_holding_cost_drop_off = Determines the rate of which the reward drops off depending in CW stock
-@ use_advanced_demand_simulation
-@ demand_curve_length_multiplier
-@ manufacturer_inventory_limit
-@ forecast_range
-@ forecast_deviation_factor
+@ use_advanced_demand_simulation = A random demand curve/trend will be generated. Agent will recieve forecasts 
+@ demand_curve_length_multiplier = Influences the length of the demand function
+@ manufacturer_inventory_limit = Maximum inventory the manufacturer can hold
+@ forecast_range = The number of future steps the agent recieves as a demand forecast
+@ forecast_deviation_factor = Determines the accuracy drop-off of the forecast values depending how much in the future
 @ use_single_value_action_space = Converts action space to discrete type. Needed by some RL algorithms
 @ sim_length = The number of rounds played during one simulation
 """
@@ -166,7 +166,6 @@ class Environment(gym.Env):
                     elif rw_next_arrival_state_list[rw_id-1] > possible_next_shipment:
                         rw_next_arrival_state_list[rw_id-1] = possible_next_shipment
 
-
         # Concat all components to list
         current_state = {"rw_inventories": np.array(rw_inv_state_list),
                          "shipments": np.array(rw_shipment_state_list),
@@ -200,46 +199,53 @@ class Environment(gym.Env):
             current_state["cw_next_arrival"] = np.intc(cw_next_arrival_state)
             current_state["cw_amount_in_transit"] = np.intc(cw_total_amount_in_transit)
 
-        # Forecasts
+        # Add forecasts to state, if advanced demand simulation is enabled
         if self.use_advanced_demand_simulation:
 
-            forecast_array = []
+            forecast_array = []  # Will become 2D array including all forecasts
 
             for rw_id in self.simulation.get_regional_warehouses():
 
+                # Parameters for Forecasting calculation
                 rw_demand_params = self.simulation.get_predefined_demand_parameters()[rw_id - 1]
                 rw_strd_demand = self.simulation.get_regional_warehouse_by_id(rw_id).get_customer().get_demand_per_step()
 
+                # Forecast calculation
                 forecast_dict = self.get_forecasts(self.simulation.get_round() - 2, rw_strd_demand, rw_demand_params,
                                                    self.forecast_range, self.forecast_deviation_factor)
 
+                # Forecast values for one RW
                 forecast_values = forecast_dict["deviating_forecast_values"]
                 float_forecast_values = forecast_dict["float_deviating_forecast_values"]
 
                 forecast_array.append(float_forecast_values)
 
+            # Add all forecasts to state
             forecast_array = np.array(forecast_array)
             current_state["forecasts"] = forecast_array
 
-
         return current_state
 
+    # Calculates forecasts for one Demand trend and given step
     def get_forecasts(self, current_round, demand, params, forecast_range, forecast_deviation_factor=1.0):
         true_forecast_values = []
         deviating_forecast_values = []
         final_deviating_forecast_values = []
 
+        # Calculate one forecast value per step in the future
         for x in range(forecast_range):
             days_in_future = x
             x += current_round + 1
-            function_value = demand + (
-                        (params["long_range_amplitude"] * np.sin(params["long_range"] * x - params["random_start"])) -
-                        params["mid_range_amplitude"] * np.sin(params["mid_range"] * x))
+            function_value = demand + ((params["long_range_amplitude"]
+                                       * np.sin(params["long_range"] * x - params["random_start"]))
+                                       - params["mid_range_amplitude"] * np.sin(params["mid_range"] * x))
 
+            # Fill forecast lists
             true_forecast_values.append(function_value)
             tamper_value = (demand * forecast_deviation_factor / forecast_range) * days_in_future
             deviating_forecast_values.append(function_value + random.uniform(-tamper_value, tamper_value))
 
+        # Check if calculated value is out of bounds
         for value in deviating_forecast_values:
             val_to_append = int(round(value, 0))
             if val_to_append < 0:
@@ -248,13 +254,6 @@ class Environment(gym.Env):
                 val_to_append = self.max_possible_forecast
 
             final_deviating_forecast_values.append(val_to_append)
-
-        """
-        plt.plot(true_forecast_values)
-        plt.plot(deviating_forecast_values)
-        plt.plot(rounded_deviating_forecast_values)
-        plt.show()
-        """
 
         return {"deviating_forecast_values": final_deviating_forecast_values,
                 "float_deviating_forecast_values": deviating_forecast_values,

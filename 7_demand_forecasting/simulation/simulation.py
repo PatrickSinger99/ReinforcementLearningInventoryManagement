@@ -130,6 +130,7 @@ class Simulation:
 
         return new_prio
 
+    # Calculates a demand path/trend affected by random variables
     def calculate_demand_path(self, demand, curve_interval):
         # Get random values for function parameters
         long_range = round(random.uniform(curve_interval * .02, curve_interval * .1), 2)
@@ -275,6 +276,7 @@ class Simulation:
         self._in_transit_shipments = []
         self._in_transit_cw_shipments = []
 
+        # Reset CW
         self._central_warehouse.reset()
 
         # Empty lists for advanced demand sim, if new demands are created after reset
@@ -286,7 +288,7 @@ class Simulation:
             # Reset RWs
             self._regional_warehouses[wh].reset()
 
-            # If advanced demand sim is enabled, create new demands every reset
+            # If advanced demand sim and its recalculation is enabled, create new demands every reset
             if self._use_predefined_demand and self._re_roll_demand_on_reset:
 
                 demand = self._regional_warehouses[wh].get_customer().get_demand_per_step()
@@ -296,5 +298,6 @@ class Simulation:
                 self._predefined_demands.append(calculated_demand["demand_path"])
                 self._predefined_demand_parameters.append(calculated_demand["function_parameters"])
 
+        # Reset manufacturer
         if self._manufacturer:
             self._manufacturer.reset()
