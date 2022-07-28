@@ -28,6 +28,9 @@ Environment class
 @ cw_inventory_holding_cost_drop_off = Determines the rate of which the reward drops off depending in CW stock
 @ use_advanced_demand_simulation
 @ demand_curve_length_multiplier
+@ manufacturer_inventory_limit
+@ forecast_range
+@ forecast_deviation_factor
 @ use_single_value_action_space = Converts action space to discrete type. Needed by some RL algorithms
 @ sim_length = The number of rounds played during one simulation
 """
@@ -39,7 +42,8 @@ class Environment(gym.Env):
                  shipment_amount, cw_shipment_amount, manufacturer, mf_prod_capacity, shipment_var_cost_per_unit,
                  shipment_fixed_cost, inventory_holding_cost_multiplier, demand_fluctuation, lead_time_fluctuation,
                  cw_inventory_holding_cost_multiplier, customer_priorities, rw_inventory_holding_cost_drop_off,
-                 cw_inventory_holding_cost_drop_off, manufacturer_inventory_limit, use_advanced_demand_simulation=False,
+                 cw_inventory_holding_cost_drop_off, manufacturer_inventory_limit, forecast_range,
+                 forecast_deviation_factor=1, use_advanced_demand_simulation=False,
                  demand_curve_length_multiplier=1, new_demand_curve_on_reset=True, use_single_value_action_space=False,
                  sim_length=50):
 
@@ -77,12 +81,6 @@ class Environment(gym.Env):
 
         """Observation Space"""
 
-        # Value needed for space range generation & forecast method
-        self.max_possible_forecast = max(demand)*2 + demand_fluctuation
-
-        test_space = gym.spaces.Box(0, self.max_possible_forecast, shape=(number_of_regional_wh, 10))
-        print(test_space.sample())
-
         obs_space = {
             # Inventory state of every regional warehouse (Plus 1 to size 1 because inventory of 0 is a possibility)
             "rw_inventories": gym.spaces.MultiDiscrete(np.array([rw_inventory_limit + 1]*number_of_regional_wh)),
@@ -96,6 +94,15 @@ class Environment(gym.Env):
             obs_space["cw_shipment"] = gym.spaces.Discrete(2)
             obs_space["cw_next_arrival"] = gym.spaces.Discrete(lead_time + 1)
             obs_space["cw_amount_in_transit"] = gym.spaces.Discrete(cw_shipment_amount * (lead_time + lead_time_fluctuation) + 1)
+
+        if use_advanced_demand_simulation:
+            # Set parameters for forecasts
+            self.max_possible_forecast = max(demand) * 2 + demand_fluctuation  # Value needed for space range generation
+            self.forecast_range = forecast_range
+            self.forecast_deviation_factor = forecast_deviation_factor
+
+            # Expand observation space with Box shape representing forecasts for each RW
+            obs_space["forecasts"] = gym.spaces.Box(0, self.max_possible_forecast, shape=(number_of_regional_wh, self.forecast_range))
 
         self.observation_space = gym.spaces.Dict(obs_space)
 
@@ -118,6 +125,7 @@ class Environment(gym.Env):
         self.cw_inventory_holding_cost_multiplier = cw_inventory_holding_cost_multiplier
         self.lead_time_fluctuation = lead_time_fluctuation
         self.use_single_value_action_space = use_single_value_action_space
+        self.use_advanced_demand_simulation = use_advanced_demand_simulation
 
         # Reward drop-off
         self.rw_inventory_holding_cost_drop_off = rw_inventory_holding_cost_drop_off
@@ -158,18 +166,7 @@ class Environment(gym.Env):
                     elif rw_next_arrival_state_list[rw_id-1] > possible_next_shipment:
                         rw_next_arrival_state_list[rw_id-1] = possible_next_shipment
 
-            # Forecasts
-            rw_demand_params = self.simulation.get_predefined_demand_parameters()[rw_id-1]
-            rw_strd_demand = self.simulation.get_regional_warehouse_by_id(rw_id).get_customer().get_demand_per_step()
 
-            forecast_dict = self.get_forecasts(self.simulation.get_round()-2, rw_strd_demand, rw_demand_params, 10, 1)
-            forecast_values = forecast_dict["deviating_forecast_values"]
-            """
-            print("RW", rw_id, "ROUND", self.simulation.get_round())
-            print("ACtual:", self.simulation.get_regional_warehouse_by_id(rw_id).get_customer().get_demand_with_fluctuation(self.simulation.get_round()))
-            print(self.simulation.get_predefined_demands()[rw_id-1][self.simulation.get_round()-2:self.simulation.get_round()+8])
-            print("Forecast", forecast_values)
-            """
         # Concat all components to list
         current_state = {"rw_inventories": np.array(rw_inv_state_list),
                          "shipments": np.array(rw_shipment_state_list),
@@ -202,6 +199,28 @@ class Environment(gym.Env):
 
             current_state["cw_next_arrival"] = np.intc(cw_next_arrival_state)
             current_state["cw_amount_in_transit"] = np.intc(cw_total_amount_in_transit)
+
+        # Forecasts
+        if self.use_advanced_demand_simulation:
+
+            forecast_array = []
+
+            for rw_id in self.simulation.get_regional_warehouses():
+
+                rw_demand_params = self.simulation.get_predefined_demand_parameters()[rw_id - 1]
+                rw_strd_demand = self.simulation.get_regional_warehouse_by_id(rw_id).get_customer().get_demand_per_step()
+
+                forecast_dict = self.get_forecasts(self.simulation.get_round() - 2, rw_strd_demand, rw_demand_params,
+                                                   self.forecast_range, self.forecast_deviation_factor)
+
+                forecast_values = forecast_dict["deviating_forecast_values"]
+                float_forecast_values = forecast_dict["float_deviating_forecast_values"]
+
+                forecast_array.append(float_forecast_values)
+
+            forecast_array = np.array(forecast_array)
+            current_state["forecasts"] = forecast_array
+
 
         return current_state
 
