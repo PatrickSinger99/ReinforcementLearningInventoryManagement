@@ -43,22 +43,23 @@ def point_average(data, n):
 plt.rcParams["figure.figsize"] = (10, 4.2)
 
 plt.subplot2grid((2, 2), (0, 0), colspan=1)
-plt.plot(w_warehouse_1, "-bo", label="With Forecasts", linewidth=2, markevery=convert_to_marker_pos(w_action_1), color="#66C2A5")
+
 plt.plot(wo_warehouse_1, "-bo", label="Without Forecasts", linewidth=2, markevery=convert_to_marker_pos(wo_action_1), color="#FC8D62")
+plt.plot(w_warehouse_1, "-bo", label="With Forecasts", linewidth=2, markevery=convert_to_marker_pos(w_action_1), color="#66C2A5")
 plt.ylabel("Inventory Level")
 plt.xlabel("Simulation Round")
 plt.xlim([1, 50])
-plt.ylim([0, 40])
+plt.ylim([0, 50])
 plt.title("Regional Warehouse 1")
 
 plt.subplot2grid((2, 2), (1, 0), colspan=1)
-plt.plot(w_warehouse_2, "-bo", label="With Forecasts", linewidth=2, markevery=convert_to_marker_pos(w_action_2), color="#66C2A5")
-plt.plot(wo_warehouse_2, "-bo", label="Without Forecasts", linewidth=2, markevery=convert_to_marker_pos(wo_action_2), color="#FC8D62")
 
+plt.plot(wo_warehouse_2, "-bo", label="Without Forecasts", linewidth=2, markevery=convert_to_marker_pos(wo_action_2), color="#FC8D62")
+plt.plot(w_warehouse_2, "-bo", label="With Forecasts", linewidth=2, markevery=convert_to_marker_pos(w_action_2), color="#66C2A5")
 plt.ylabel("Inventory Level")
 plt.xlabel("Simulation Round")
 plt.xlim([1, 50])
-plt.ylim([0, 40])
+plt.ylim([0, 100])
 plt.title("Regional Warehouse 2")
 
 plt.subplot2grid((2, 2), (0, 1), rowspan=2)
