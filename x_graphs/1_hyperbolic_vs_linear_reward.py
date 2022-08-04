@@ -1,4 +1,10 @@
 from matplotlib import pyplot as plt
+import numpy as np
+import matplotlib.font_manager
+
+print(matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf'))
+matplotlib.font_manager.fontManager.addfont('C:\\Users\\patri\\AppData\\Local\\Microsoft\\Windows\\Fonts\\cmunbx.ttf')
+plt.rcParams["font.family"] = "CMU Serif"
 
 hyperbolic = []
 linear = [1]
@@ -10,14 +16,19 @@ linear.pop(-1)
 print(hyperbolic)
 print(linear)
 
+x = np.linspace(0, 25, 250)
+
+hyperbolic = 1/(x+1)
+print(hyperbolic)
 plt.rcParams["figure.figsize"] = (10, 4.2)
 
+
 plt.subplot(1, 2, 1)
-plt.plot(hyperbolic, "-bo", label="Hyperbolic Reward Function", color="#66C2A5")
-plt.plot(linear, "--bo", label="Linear Reward Function", linestyle=":", color="#FC8D62")
+plt.plot(x, hyperbolic, label="Hyperbolic", color="#66C2A5", linewidth=2)
+plt.plot(linear, label="Linear", color="#FC8D62", linewidth=2)
 plt.legend()
 plt.ylabel("Reward")
-plt.xlabel("Inventory level")
+plt.xlabel("Inventory Level")
 plt.xlim([0, 25])
 plt.ylim([0, 1])
 plt.title("Reward Function")
@@ -28,8 +39,8 @@ hyperbolic = [7, 6, 5, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 
 linear = [7, 6, 10, 9, 8, 7, 6, 5, 4, 3, 7, 6, 5, 4, 3, 7, 6, 5, 4, 3, 7, 6, 10, 9, 8, 7, 11, 10, 9, 8, 7, 6, 5, 4, 3, 7, 6, 5, 4, 3, 7, 6, 10, 9, 8, 7, 6, 5, 4, 3, 7, 6, 5, 4, 3, 2, 1, 0, 4, 8]
 
 
-plt.plot(hyperbolic, label="With Hyperbolic Reward", color="#66C2A5", linewidth=2)
-plt.plot(linear, label="With Linear Reward", linestyle=":", color="#FC8D62", linewidth=2)
+plt.plot(hyperbolic, label="With Hyperbolic Reward Function", color="#66C2A5", linewidth=2)
+plt.plot(linear, label="With Linear Reward Function", color="#FC8D62", linewidth=2)
 plt.legend()
 plt.ylabel("Inventory level")
 plt.xlabel("Step")
