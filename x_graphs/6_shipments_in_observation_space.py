@@ -1,5 +1,11 @@
 from matplotlib import pyplot as plt
 import numpy as np
+import matplotlib.font_manager
+import matplotlib.lines as mlines
+
+print(matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf'))
+matplotlib.font_manager.fontManager.addfont('C:\\Users\\patri\\AppData\\Local\\Microsoft\\Windows\\Fonts\\cmunrm.ttf')
+plt.rcParams["font.family"] = "CMU Serif"
 
 warehouse_1 = [0, 10, 7, 4, 1, 6, 3, 0, 5, 10, 7, 4, 1, 6, 3, 0, 5, 10, 7, 4, 1, 6, 3, 0, 0, 5, 2, 0, 5, 10, 7]
 warehouse_2 = [0, 10, 7, 4, 1, 6, 3, 0, 5, 2, 7, 4, 1, 6, 3, 0, 5, 2, 7, 4, 1, 6, 3, 0, 5, 2, 7, 4, 1, 6, 3]
@@ -35,21 +41,26 @@ avg_2 = point_average(convergence_2, 200)
 
 plt.rcParams["figure.figsize"] = (10, 4.2)
 
+reorder_marker = mlines.Line2D([],[], color='#FC8D62', marker='o', linestyle='None', label="Agent Reorder Point")
+
 plt.subplot2grid((2, 2), (0, 0), colspan=1)
 plt.plot(warehouse_1, "-bo", label="Without Shipping Information", linewidth=2, markevery=convert_to_marker_pos(action_1), color="#FC8D62")
 plt.ylabel("Inventory Level")
+plt.legend(handles=[reorder_marker])
 #plt.xlabel("Simulation Round")
 plt.xlim([1, 30])
 plt.ylim([0, 15])
-plt.title("RW without Shipping Information")
+plt.title("Warehouse without Shipping Information")
 
+reorder_marker = mlines.Line2D([],[], color='#66C2A5', marker='o', linestyle='None', label="Agent Reorder Point")
 plt.subplot2grid((2, 2), (1, 0), colspan=1)
 plt.plot(warehouse_2, "-bo", label="With Shipping Information", linewidth=2, markevery=convert_to_marker_pos(action_2), color="#66C2A5")
 plt.ylabel("Inventory Level")
 plt.xlabel("Simulation Round")
+plt.legend(handles=[reorder_marker])
 plt.xlim([1, 30])
 plt.ylim([0, 15])
-plt.title("RW with Shipping Information")
+plt.title("Warehouse with Shipping Information")
 
 plt.subplot2grid((2, 2), (0, 1), rowspan=2)
 plt.plot(convergence_1, label="Without Shipping Information", alpha=0.75, color="#FC8D62")
@@ -61,7 +72,7 @@ plt.ylabel("Total Reward")
 plt.xlabel("Training Episode")
 plt.xlim([0, 5000])
 # plt.ylim([0, 30])
-plt.title("Agent Convergence")
+plt.title("Learning Curve")
 
 
 plt.suptitle("Impact of Shipment Information in the Observation Space", fontsize=15)
