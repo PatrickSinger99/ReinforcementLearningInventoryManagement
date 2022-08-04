@@ -1,5 +1,10 @@
 from matplotlib import pyplot as plt
 import matplotlib.lines as mlines
+import matplotlib.font_manager
+
+print(matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf'))
+matplotlib.font_manager.fontManager.addfont('C:\\Users\\patri\\AppData\\Local\\Microsoft\\Windows\\Fonts\\cmunrm.ttf')
+plt.rcParams["font.family"] = "CMU Serif"
 
 warehouse_1 = [0, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 7, 6, 5, 4, 3, 2, 1, 0, 7, 6, 5, 4, 3, 2, 1, 0, 7]
 warehouse_2 = [0, 11, 9, 7, 5, 3, 1, 7, 5, 3, 1, 7, 5, 3, 1, 7, 5, 3, 9, 15, 13, 11, 9, 7, 5, 3, 1, 7, 5, 3, 1]
