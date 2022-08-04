@@ -32,7 +32,7 @@ option_2 = [0, 8, 6, 4, 2, 0, 4, 2, 0, 4, 2, 0, 4, 2, 0, 4, 2, 0, 4, 2, 0, 4, 2,
 
 plt.plot(option_1, label="Szenario 1: Low Fixed Costs / High Variable Costs", color="#66C2A5", linewidth=2)
 plt.plot(option_2, label="Szenario 2: High Fixed Costs / Low Variable Costs", color="#FC8D62", linewidth=2)
-plt.legend()
+plt.legend(bbox_to_anchor=(0.5, -0.05))
 plt.ylabel("Inventory level")
 plt.xlabel("Step")
 plt.xlim([1, 25])
