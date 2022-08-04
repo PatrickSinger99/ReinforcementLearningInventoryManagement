@@ -1,5 +1,10 @@
 from matplotlib import pyplot as plt
 import matplotlib.lines as mlines
+import matplotlib.font_manager
+
+print(matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf'))
+matplotlib.font_manager.fontManager.addfont('C:\\Users\\patri\\AppData\\Local\\Microsoft\\Windows\\Fonts\\cmunbx.ttf')
+plt.rcParams["font.family"] = "CMU Serif"
 
 warehouse_1 = [0, 7, 6, 5, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3]
 action = [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0]
@@ -24,7 +29,7 @@ def convert_to_marker_pos(action):
     return return_list
 
 
-reorder_marker = mlines.Line2D([],[], color='#66C2A5', marker='o', linestyle='None', label="Agent reorder point")
+reorder_marker = mlines.Line2D([],[], color='#66C2A5', marker='o', linestyle='None', label="Agent Reorder Point")
 
 plt.rcParams["figure.figsize"] = (10, 4.2)
 
@@ -35,18 +40,20 @@ plt.ylabel("Inventory Level")
 plt.xlabel("Simulation Round")
 plt.xlim([1, 40])
 plt.ylim([0, 15])
-plt.title("Regional Warehouse Inventory Level")
+plt.title("Regional Warehouse")
 
 plt.subplot(1, 2, 2)
 plt.plot(remove_outlier(convergence), label="Inventory with demand of 2", color="#FC8D62")
+plt.plot([16.87]*1200, "--", color="#DD6235")
+plt.text(100, 3.3, "Optimal Reward: ~16.87", color="#DD6235")
 plt.ylabel("Total Reward")
-plt.xlabel("Training Round")
+plt.xlabel("Training Episode")
 plt.xlim([0, 1200])
 #plt.ylim([0, 25])
-plt.title("Agent Convergence")
+plt.title("Learning Curve")
 
 
-plt.suptitle("Agent Performance in a MVP Simulation", fontsize=15)
+plt.suptitle("PPO Agent Performance in a MVP Simulation", fontsize=15)
 plt.tight_layout(pad=1)
 plt.show()
 """
