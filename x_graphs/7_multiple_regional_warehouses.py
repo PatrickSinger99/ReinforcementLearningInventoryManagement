@@ -20,7 +20,7 @@ def convert_to_marker_pos(action):
     return return_list
 
 
-reorder_marker = mlines.Line2D([],[], color='#66C2A5', marker='o', linestyle='None', label="Agent reorder point")
+reorder_marker = mlines.Line2D([],[], color='#66C2A5', marker='o', linestyle='None', label="Agent Reorder Point")
 
 plt.rcParams["figure.figsize"] = (10, 4.2)
 
@@ -28,28 +28,28 @@ plt.subplot(1, 3, 1)
 plt.plot(warehouse_1, "-bo", label="Reorder point", markevery=convert_to_marker_pos(action_1), color="#66C2A5")
 plt.legend(handles=[reorder_marker])
 plt.ylabel("Inventory Level")
-plt.xlabel("Round")
+#plt.xlabel("Round")
 plt.xlim([1, 30])
 plt.ylim([0, 25])
-plt.title("Regional Warehouse 1\n(Demand of 1)")
+plt.title("Regional Warehouse 1")
 
 plt.subplot(1, 3, 2)
 plt.plot(warehouse_2, "-bo", label="Inventory with demand of 2", markevery=convert_to_marker_pos(action_2), color="#66C2A5")
-plt.legend(handles=[reorder_marker])
-plt.ylabel("Inventory Level")
-plt.xlabel("Round")
+#plt.legend(handles=[reorder_marker])
+
+plt.xlabel("Simulation Round")
 plt.xlim([1, 30])
 plt.ylim([0, 25])
-plt.title("Regional Warehouse 2\n(Demand of 2)")
+plt.title("Regional Warehouse 2")
 
 plt.subplot(1, 3, 3)
 plt.plot(warehouse_3, "-bo", label="Inventory with demand of 3", markevery=convert_to_marker_pos(action_3), color="#66C2A5")
-plt.legend(handles=[reorder_marker])
-plt.ylabel("Inventory Level")
-plt.xlabel("Round")
+#plt.legend(handles=[reorder_marker])
+
+#plt.xlabel("Round")
 plt.xlim([1, 30])
 plt.ylim([0, 25])
-plt.title("Regional Warehouse 3\n(Demand of 3)")
+plt.title("Regional Warehouse 3")
 plt.suptitle("Simulation with three Regional Warehouses", fontsize=15)
 plt.tight_layout(pad=1)
 plt.show()
