@@ -1,5 +1,6 @@
 from matplotlib import pyplot as plt
 import matplotlib.lines as mlines
+import numpy as np
 
 without_shipping_info = [0, 7, 6, 10, 14, 13, 12, 11, 15, 14, 13, 12, 11, 15, 14, 13, 12, 11, 15, 14, 13, 12, 11, 15, 14, 13, 12, 16, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 15, 14, 13]
 action_without_shipping_info = [0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1]
@@ -29,29 +30,32 @@ def convert_to_marker_pos(action):
         i += 1
     return return_list
 
-
-reorder_marker = mlines.Line2D([],[], color='#66C2A5', marker='o', linestyle='None', label="Agent reorder point")
+reorder_marker = mlines.Line2D([],[], color='#66C2A5', marker="o", linestyle='None', label="Agent Reorder Point")
+reorder_marker2 = mlines.Line2D([],[], color='#66C2A5', marker='o', linestyle='None', label="Agent Reorder Point")
 
 plt.rcParams["figure.figsize"] = (10, 4.2)
 
 plt.subplot(1, 2, 1)
 plt.plot(without_shipping_info, "-bo", label="Without shipping information", markevery=convert_to_marker_pos(action_without_shipping_info), color="#FC8D62")
 plt.plot(with_shipping_info, "-bo", label="With shipping information", markevery=convert_to_marker_pos(action_with_shipping_info), color="#66C2A5")
-plt.legend(loc='upper left')
+plt.plot(2, 24, "o", color="#FC8D62")
+legend = plt.legend(loc='upper left', handles=[reorder_marker])
+legend.get_frame().set_alpha(None)
+legend.get_frame().set_facecolor((0, 0, 0, 0))
 plt.ylabel("Inventory Level")
 plt.xlabel("Simulation Round")
 plt.xlim([1, 40])
 plt.ylim([0, 25])
-plt.title("Regional Warehouse Inventory Level")
+plt.title("Regional Warehouse")
 
 plt.subplot(1, 2, 2)
 plt.plot(remove_outlier(convergence_without_shipping_info), label="Without shipping information", alpha=0.75, color="#FC8D62")
 plt.plot(remove_outlier(convergence_with_shipping_info), label="With shipping information", alpha=0.75, color="#66C2A5")
-plt.legend(loc='upper left')
+plt.legend(loc='upper left', bbox_to_anchor=(1, 0.5))
 plt.ylabel("Total Reward")
-plt.xlabel("Training Round")
+plt.xlabel("Training Episode")
 plt.xlim([0, 2500])
-plt.title("Agent Convergence")
+plt.title("Learning Curve")
 
 plt.suptitle("DQN Agent Performance in an MVP Simulation", fontsize=15)
 plt.tight_layout(pad=1)
