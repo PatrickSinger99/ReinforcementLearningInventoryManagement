@@ -3,7 +3,7 @@ import matplotlib.lines as mlines
 import matplotlib.font_manager
 
 print(matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf'))
-matplotlib.font_manager.fontManager.addfont('C:\\Users\\patri\\AppData\\Local\\Microsoft\\Windows\\Fonts\\cmunbx.ttf')
+matplotlib.font_manager.fontManager.addfont('C:\\Users\\patri\\AppData\\Local\\Microsoft\\Windows\\Fonts\\cmunrm.ttf')
 plt.rcParams["font.family"] = "CMU Serif"
 
 warehouse_1 = [0, 7, 6, 5, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3, 2, 1, 0, 4, 3]
@@ -45,7 +45,7 @@ plt.title("Regional Warehouse")
 plt.subplot(1, 2, 2)
 plt.plot(remove_outlier(convergence), label="Inventory with demand of 2", color="#FC8D62")
 plt.plot([16.87]*1200, "--", color="#DD6235")
-plt.text(100, 3.3, "Optimal Reward: ~16.87", color="#DD6235")
+plt.text(30, 15.5, "Optimal Reward: ~16.87", color="#DD6235")
 plt.ylabel("Total Reward")
 plt.xlabel("Training Episode")
 plt.xlim([0, 1200])
