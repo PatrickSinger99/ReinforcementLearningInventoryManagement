@@ -40,27 +40,28 @@ avg_1 = point_average(convergence_1, 200)
 avg_2 = point_average(convergence_2, 200)
 
 plt.rcParams["figure.figsize"] = (10, 4.2)
+plt.rcParams["axes.unicode_minus"] = False
 
 reorder_marker = mlines.Line2D([],[], color='#FC8D62', marker='o', linestyle='None', label="Agent Reorder Point")
 
 plt.subplot2grid((2, 2), (0, 0), colspan=1)
 plt.plot(warehouse_1, "-bo", label="Without Shipping Information", linewidth=2, markevery=convert_to_marker_pos(action_1), color="#FC8D62")
-plt.ylabel("Inventory Level")
+plt.ylabel("Inventory Level", fontsize=11)
 plt.legend(handles=[reorder_marker])
 #plt.xlabel("Simulation Round")
 plt.xlim([1, 30])
 plt.ylim([0, 15])
-plt.title("Warehouse without Shipping Information")
+plt.title("Warehouse without Shipping Information", fontsize=14)
 
 reorder_marker = mlines.Line2D([],[], color='#66C2A5', marker='o', linestyle='None', label="Agent Reorder Point")
 plt.subplot2grid((2, 2), (1, 0), colspan=1)
 plt.plot(warehouse_2, "-bo", label="With Shipping Information", linewidth=2, markevery=convert_to_marker_pos(action_2), color="#66C2A5")
-plt.ylabel("Inventory Level")
-plt.xlabel("Simulation Round")
+plt.ylabel("Inventory Level", fontsize=11)
+plt.xlabel("Simulation Round", fontsize=11)
 plt.legend(handles=[reorder_marker])
 plt.xlim([1, 30])
 plt.ylim([0, 15])
-plt.title("Warehouse with Shipping Information")
+plt.title("Warehouse with Shipping Information", fontsize=14)
 
 plt.subplot2grid((2, 2), (0, 1), rowspan=2)
 plt.plot(convergence_1, label="Without Shipping Information", alpha=0.75, color="#FC8D62")
@@ -68,14 +69,14 @@ plt.plot(convergence_2, label="With Shipping Information", alpha=0.75, color="#6
 # plt.plot(np.linspace(0, 4997, len(avg_1), endpoint=True), avg_1, color="#FC8D62")
 # plt.plot(np.linspace(0, 4997, len(avg_2), endpoint=True), avg_2, color="#66C2A5")
 plt.legend()
-plt.ylabel("Total Reward")
-plt.xlabel("Training Episode")
+plt.ylabel("Total Reward", fontsize=11)
+plt.xlabel("Training Episode", fontsize=11)
 plt.xlim([0, 5000])
 # plt.ylim([0, 30])
-plt.title("Learning Curve")
+plt.title("Learning Curve", fontsize=14)
 
 
-plt.suptitle("Impact of Shipment Information in the Observation Space", fontsize=15)
+plt.suptitle("Impact of Shipment Information in the Observation Space", fontsize=16)
 plt.tight_layout(pad=1)
 plt.show()
 

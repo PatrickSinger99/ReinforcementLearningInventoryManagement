@@ -1,5 +1,10 @@
 from matplotlib import pyplot as plt
 import matplotlib.lines as mlines
+import matplotlib.font_manager
+
+print(matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf'))
+matplotlib.font_manager.fontManager.addfont('C:\\Users\\patri\\AppData\\Local\\Microsoft\\Windows\\Fonts\\cmunrm.ttf')
+plt.rcParams["font.family"] = "CMU Serif"
 
 warehouse_1 = [0, 8, 6, 4, 2, 0, 8, 6, 4, 2, 0, 8, 6, 4, 2, 0, 8, 6, 4, 2, 0, 8, 6, 4, 2, 0, 8, 6, 4, 2, 0, 8, 6, 4, 2, 0, 8, 6, 4, 2, 0]
 warehouse_2 = [0, 7, 4, 1, 8, 5, 12, 9, 6, 3, 0, 0, 0, 7, 4, 1, 0, 0, 0, 0, 0, 0, 7, 4, 1, 0, 0, 0, 0, 0, 0, 0, 7, 4, 1, 0, 0, 0, 0, 0, 0]
@@ -22,48 +27,48 @@ def convert_to_marker_pos(action):
     return return_list
 
 
-reorder_marker = mlines.Line2D([], [], color='#66C2A5', marker='o', linestyle='None', label="Agent reorder point")
-reorder_marker_cw = mlines.Line2D([], [], color='#FC8D62', marker='o', linestyle='None', label="Agent reorder point")
+reorder_marker = mlines.Line2D([], [], color='#66C2A5', marker='o', linestyle='None', label="Agent Reorder Point")
+reorder_marker_cw = mlines.Line2D([], [], color='#FC8D62', marker='o', linestyle='None', label="Agent Reorder Point")
 
-plt.rcParams["figure.figsize"] = (10, 7)
+plt.rcParams["figure.figsize"] = (10, 6)
 
 plt.subplot(2, 2, 1)
 plt.plot(warehouse_1, "-bo", label="RW 1", markevery=convert_to_marker_pos(action_1), color="#66C2A5")
 plt.legend(handles=[reorder_marker])
-plt.ylabel("Inventory Level")
-plt.xlabel("Round")
+plt.ylabel("Inventory Level", fontsize=11)
+# plt.xlabel("Round", fontsize=11)
 plt.xlim([1, 40])
-plt.ylim([0, 30])
-plt.title("Regional Warehouse 1")
+plt.ylim([0, 25])
+plt.title("Regional Warehouse 1", fontsize=14)
 
 plt.subplot(2, 2, 2)
 plt.plot(warehouse_2, "-bo", label="RW 2", markevery=convert_to_marker_pos(action_2_without_removed), color="#66C2A5")
-plt.legend(handles=[reorder_marker])
-plt.ylabel("Inventory Level")
-plt.xlabel("Round")
+# plt.legend(handles=[reorder_marker])
+# plt.ylabel("Inventory Level")
+# plt.xlabel("Round", fontsize=11)
 plt.xlim([1, 40])
-plt.ylim([0, 30])
-plt.title("Regional Warehouse 2")
+plt.ylim([0, 25])
+plt.title("Regional Warehouse 2", fontsize=14)
 
 plt.subplot(2, 2, 3)
-plt.plot(warehouse_cw, "-bo", label="CW", markevery=convert_to_marker_pos(action_cw), color="#FC8D62")
-plt.legend(handles=[reorder_marker_cw])
-plt.ylabel("Inventory Level")
-plt.xlabel("Round")
+plt.plot(warehouse_cw, label="CW", color="#FC8D62")
+# plt.legend(handles=[reorder_marker_cw])
+plt.ylabel("Inventory Level", fontsize=11)
+plt.xlabel("Round", fontsize=11)
 plt.xlim([1, 40])
-plt.ylim([0, 50])
-plt.title("Central Warehouse")
+plt.ylim([-1, 40])
+plt.title("Central Warehouse", fontsize=14)
 
 plt.subplot(2, 2, 4)
 plt.plot(manufacturer, label="Manufacturer", color="#8DA0CB")
-plt.ylabel("Inventory Level")
-plt.xlabel("Round")
+# plt.ylabel("Inventory Level")
+plt.xlabel("Round", fontsize=11)
 plt.xlim([1, 40])
-plt.ylim([0, 50])
-plt.title("Manufacturer")
+plt.ylim([0, 40])
+plt.title("Manufacturer", fontsize=14)
 
 
-plt.suptitle("Simulation with production deficit and prioritization", fontsize=15)
+plt.suptitle("Simulation with Production Deficit and RW Prioritization", fontsize=16)
 plt.tight_layout(pad=1)
 plt.show()
 

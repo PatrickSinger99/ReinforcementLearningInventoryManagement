@@ -34,10 +34,12 @@ def convert_to_marker_pos(action):
         i += 1
     return return_list
 
+
 reorder_marker = mlines.Line2D([],[], color='#66C2A5', marker="o", linestyle='None', label="Agent Reorder Point")
 reorder_marker2 = mlines.Line2D([],[], color='#66C2A5', marker='o', linestyle='None', label="Agent Reorder Point")
 
 plt.rcParams["figure.figsize"] = (10, 4.2)
+plt.rcParams["axes.unicode_minus"] = False
 
 plt.subplot(1, 2, 1)
 plt.plot(without_shipping_info, "-bo", label="Without shipping information", markevery=convert_to_marker_pos(action_without_shipping_info), color="#FC8D62")
@@ -46,22 +48,22 @@ plt.plot(2.3, 23.53, "o", color="#FC8D62")
 legend = plt.legend(loc='upper left', handles=[reorder_marker])
 legend.get_frame().set_alpha(None)
 legend.get_frame().set_facecolor((0, 0, 0, 0))
-plt.ylabel("Inventory Level")
-plt.xlabel("Simulation Round")
+plt.ylabel("Inventory Level", fontsize=11)
+plt.xlabel("Simulation Round", fontsize=11)
 plt.xlim([1, 40])
 plt.ylim([0, 25])
-plt.title("Regional Warehouse")
+plt.title("Regional Warehouse", fontsize=14)
 
 plt.subplot(1, 2, 2)
 plt.plot(remove_outlier(convergence_without_shipping_info), label="Without Shipping Information", alpha=0.75, color="#FC8D62")
 plt.plot(remove_outlier(convergence_with_shipping_info), label="With Shipping Information", alpha=0.75, color="#66C2A5")
 plt.legend(loc='upper left')
-plt.ylabel("Total Reward")
-plt.xlabel("Training Episode")
+plt.ylabel("Total Reward", fontsize=11)
+plt.xlabel("Training Episode", fontsize=11)
 plt.xlim([0, 2500])
-plt.title("Learning Curve")
+plt.title("Learning Curve", fontsize=14)
 
-plt.suptitle("DQN Agent Performance in a MVP Simulation", fontsize=15)
+plt.suptitle("DQN Agent Performance in an MVP Simulation", fontsize=16)
 plt.tight_layout(pad=1)
 plt.show()
 

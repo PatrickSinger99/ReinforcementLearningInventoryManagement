@@ -1,6 +1,11 @@
 from matplotlib import pyplot as plt
 import numpy as np
 import random
+import matplotlib.font_manager
+
+print(matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf'))
+matplotlib.font_manager.fontManager.addfont('C:\\Users\\patri\\AppData\\Local\\Microsoft\\Windows\\Fonts\\cmunrm.ttf')
+plt.rcParams["font.family"] = "CMU Serif"
 
 sim_length = 100
 curve_interval = 1
@@ -58,10 +63,10 @@ plt.plot([0] + upper_bound, "--", color="#66C2A5", alpha=0.5, label="Forecasting
 plt.plot([0] + lower_bound, "--", color="#66C2A5", alpha=0.5)
 
 plt.plot([0] + forecasts, "o", color="#FC8D62", label="Chosen Forecast Values")
-plt.legend()
-plt.ylabel("Demand")
-plt.xlabel("Simulation Round")
+plt.legend(loc="lower left")
+plt.ylabel("Demand", fontsize=11)
+plt.xlabel("Simulation Round", fontsize=11)
 plt.xlim([1, 50])
 plt.ylim([0, 10])
-plt.title("Forecast Creation for One Customer")
+plt.title("Forecast Creation for One Customer", fontsize=16)
 plt.show()

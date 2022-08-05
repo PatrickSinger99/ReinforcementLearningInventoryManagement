@@ -1,6 +1,11 @@
 from matplotlib import pyplot as plt
 import numpy as np
 import random
+import matplotlib.font_manager
+
+print(matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf'))
+matplotlib.font_manager.fontManager.addfont('C:\\Users\\patri\\AppData\\Local\\Microsoft\\Windows\\Fonts\\cmunrm.ttf')
+plt.rcParams["font.family"] = "CMU Serif"
 
 sim_length = 100
 curve_interval = 1
@@ -26,7 +31,7 @@ def calculate_demand_path(demand, demand_fluctuation):
 
     return {"demand_path": demand_path, "function_parameters": function_parameters}
 
-plt.rcParams["figure.figsize"] = (7, 4.2)
+plt.rcParams["figure.figsize"] = (10, 4.2)
 demand1 = 4
 demand2 = 6
 demand3 = 6
@@ -58,13 +63,21 @@ y3 = demand3 + ((params["long_range_amplitude"] * np.sin(params["long_range"]*x-
 
 print(params)
 
-plt.plot(x, y1, color="#FC8D62", label="Demand: 6; Fluctuation: 4")
-plt.plot(x, y2, color="#66C2A5", label="Demand: 4; Fluctuation: 2")
-plt.plot(x, y3, color="#8DA0CB", label="Demand: 6; Fluctuation: 1")
-plt.legend()
-plt.ylabel("Demand")
-plt.xlabel("Simulation Round")
+fig = plt.figure()
+ax = plt.subplot(111)
+
+ax.plot(x, y1, color="#FC8D62", label="Scenario 1: Demand of 6 / Fluctuation of 4")
+ax.plot(x, y2, color="#66C2A5", label="Scenario 2: Demand of 4 / Fluctuation of 2")
+ax.plot(x, y3, color="#8DA0CB", label="Scenario 3: Demand of 6 / Fluctuation of 1")
+ax.legend(bbox_to_anchor=(1, .27))
+plt.ylabel("Demand", fontsize=11)
+plt.xlabel("Simulation Round", fontsize=11)
 plt.xlim([1, 100])
 plt.ylim([0, 10])
-plt.title("Created Demand Trend Examples")
+plt.title("Examples of Created Demand Trend Curves", fontsize=16)
+
+# Shrink current axis by 20%
+box = ax.get_position()
+ax.set_position([box.x0, box.y0, box.width * 0.7, box.height])
+
 plt.show()
