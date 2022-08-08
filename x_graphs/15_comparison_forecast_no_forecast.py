@@ -1,6 +1,7 @@
 from matplotlib import pyplot as plt
 import numpy as np
 import matplotlib.font_manager
+import matplotlib.patheffects as pe
 
 print(matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf'))
 matplotlib.font_manager.fontManager.addfont('C:\\Users\\patri\\AppData\\Local\\Microsoft\\Windows\\Fonts\\cmunrm.ttf')
@@ -72,8 +73,8 @@ plt.plot(w_convergence, label="Scenario 1: Forecasts available for the Agent", a
 plt.plot(wo_convergence, label="Scenario 2: No Forecasts available for the Agent", alpha=0.75, color="#FC8D62")
 plt.plot([get_avg_after_convergence(w_convergence, 3000)]*6000, "--", color="#367C66")
 plt.plot([get_avg_after_convergence(wo_convergence, 3000)]*6000, "--", color="#DD6235")
-plt.text(100, 4, "Forecast. " + str(round(get_avg_after_convergence(w_convergence, 3000), 2)), color="#367C66")
-plt.text(100, 1, "No Forecast. " + str(round(get_avg_after_convergence(wo_convergence, 3000), 2)), color="#DD6235")
+plt.text(100, 2.3, "With Forecast: " + str(round(get_avg_after_convergence(w_convergence, 3000), 2)), color="#2A604F", fontsize=11)
+plt.text(100, -1.1, "Without Forecast: " + str(round(get_avg_after_convergence(wo_convergence, 3000), 2)), color="#914022", fontsize=11)
 plt.legend(bbox_to_anchor=(1.02, -0.2))
 plt.ylabel("Total Reward", fontsize=11)
 plt.xlabel("Training Episode", fontsize=11)
