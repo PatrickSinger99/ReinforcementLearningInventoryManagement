@@ -39,13 +39,13 @@ Environment class
 class Environment(gym.Env):
 
     def __init__(self, number_of_regional_wh, rw_inventory_limit, cw_inventory_limit, demand, lead_time,
-                 shipment_amount, cw_shipment_amount, manufacturer, mf_prod_capacity, shipment_var_cost_per_unit,
-                 shipment_fixed_cost, inventory_holding_cost_multiplier, demand_fluctuation, lead_time_fluctuation,
-                 cw_inventory_holding_cost_multiplier, customer_priorities, rw_inventory_holding_cost_drop_off,
-                 cw_inventory_holding_cost_drop_off, manufacturer_inventory_limit, forecast_range,
-                 forecast_deviation_factor=1, use_advanced_demand_simulation=False,
-                 demand_curve_length_multiplier=1, new_demand_curve_on_reset=True, use_single_value_action_space=False,
-                 sim_length=50):
+                 shipment_amount, manufacturer, shipment_var_cost_per_unit, shipment_fixed_cost, demand_fluctuation,
+                 lead_time_fluctuation, customer_priorities, cw_shipment_amount=20, mf_prod_capacity=20,
+                 inventory_holding_cost_multiplier=1, cw_inventory_holding_cost_multiplier=.5,
+                 rw_inventory_holding_cost_drop_off=1, cw_inventory_holding_cost_drop_off=.25,
+                 manufacturer_inventory_limit=200, forecast_range=10, forecast_deviation_factor=1,
+                 use_advanced_demand_simulation=False, demand_curve_length_multiplier=1, new_demand_curve_on_reset=True,
+                 use_single_value_action_space=False, sim_length=50):
 
         # Initiate gym.Env
         super().__init__()
@@ -67,7 +67,7 @@ class Environment(gym.Env):
 
         """Action Space"""
 
-        # Per warehouse the number of action depends on the nuber of possible shipment amounts
+        # Per warehouse the number of action depends on the number of possible shipment amounts
         action_space = [len(shipment_amount)+1]*number_of_regional_wh
         if manufacturer:
             action_space += [2]
@@ -142,7 +142,7 @@ class Environment(gym.Env):
         # Saves total rewards over multiple episodes. Not affected by resets
         self.total_reward = []
 
-    """Creates new state dictionary. Fetches changes in the simualtion"""
+    """Creates new state dictionary. Fetches changes in the simulation"""
     def get_state(self):
         # Build state component regional warehouse inventories
         rw_inv_state_list = []
@@ -374,7 +374,7 @@ class Environment(gym.Env):
         # Update state from simulation (Simulation handels demand)
         self.state = self.get_state()
 
-        # Reward function based on inventory amount
+        # Reward function based on inventory amounts and started shipments
         reward = 0
         # Check RWs
         for rw_id in self.simulation.get_regional_warehouses():
