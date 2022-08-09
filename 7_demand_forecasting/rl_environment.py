@@ -92,7 +92,7 @@ class Environment(gym.Env):
             # Inventory state of the central warehouse
             obs_space["cw_inventory"] = gym.spaces.Discrete(cw_inventory_limit + 1)
             obs_space["cw_shipment"] = gym.spaces.Discrete(2)
-            obs_space["cw_next_arrival"] = gym.spaces.Discrete(lead_time + 1)
+            obs_space["cw_next_arrival"] = gym.spaces.Discrete(lead_time + 1 + lead_time_fluctuation)
             obs_space["cw_amount_in_transit"] = gym.spaces.Discrete(cw_shipment_amount * (lead_time + lead_time_fluctuation) + 1)
 
         if use_advanced_demand_simulation:
