@@ -151,13 +151,13 @@ If problems occur, compare all library versions to the collection below:
 
 If only the Environment is needed, the class can be found in the rl_environment.py file. It can be used as a standard openAI Gym environment as described in the official [Gym documentation](https://www.gymlibrary.ml/).
 
-The main.ipynb file provides a szenario in which the environment is getting set up and trained with a stable baselines model, as well as the application of the trained agent on a distribution network simulation.
+The main.ipynb file provides a scenario in which the environment is getting set up and trained with a stable baselines model, as well as the application of the trained agent on a distribution network simulation.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## Project Organization
 
-The repository contains multiple versions of the artifact. They are organized in folders beginning with the version number and ending with the newest implmented feature. Inside the version folder the structure is as follows:
+The repository contains multiple versions of the artifact. They are organized in folders beginning with the version number and ending with the newest implemented feature. Inside the version folder the structure is as follows:
 
     └── 0_example_feature               <- Version Folder
         │
